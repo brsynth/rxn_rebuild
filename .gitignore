@@ -1,0 +1,9 @@
+# Specific
+_exclude_*
+
+# Generic
+__pycache__
+.DS_Store
+package.json
+package-lock.json
+node_modules
