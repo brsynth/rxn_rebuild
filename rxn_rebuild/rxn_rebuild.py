@@ -10,12 +10,8 @@ from typing import (
 )
 from rdkit import Chem
 from copy import deepcopy
-# from colored import (
-#     attr as c_attr,
-#     fg as c_fg,
-#     bg as c_bg
-# )
 from json import dumps
+from rr_cache import rrCache
 
 
 def rebuild_rxn(
