@@ -40,8 +40,8 @@ def rebuild_rxn(
         logger.warning(
             '      Number of compounds different in the original reaction and the input transformation'
         )
-        logger.warning('         |- INPUT TRANSFORMATION [RIGHT]: ' + str(trans_input['right']))
-        logger.warning('         |- ORIGINAL REACTION [RIGHT]: ' + str(rxn_rule['right']))
+        logger.warning('         |- INPUT TRANSFORMATION [right]: ' + str(trans_input['right']))
+        logger.warning('         |- ORIGINAL REACTION [right]: ' + str(rxn_rule['right']))
 
     ## ORIGINAL REACTION
     orig_rxn = load_orig_rxn(cache, orig_rxn_id, rxn_rule['rel_direction'])
