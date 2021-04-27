@@ -65,9 +65,8 @@ def rebuild_rxn(
             logger.warning(
                 '      Number of compounds different in the original reaction and the input transformation'
             )
-            logger.warning('         |- INPUT TRANSFORMATION ['+side+']: ' + str(trans_input[side]))
+            logger.warning('         |- COMPLETED TRANSFORMATION ['+side+']: ' + str(trans_res[side]))
             logger.warning('         |- ORIGINAL REACTION ['+side+']: ' + str(rxn_rule[side]))
-
 
     return '.'.join(trans_res['left'])+'>>'+'.'.join(trans_res['right'])
 
