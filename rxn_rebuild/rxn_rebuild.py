@@ -30,7 +30,7 @@ def rebuild_rxn(
     orig_rxn_id, rxn_rule = load_rxn_rule(cache, rxn_rule_id)
     logger.debug('REACTION RULE:'+str(dumps(rxn_rule, indent=4)))
 
-    # Check if the number of structures in SMILES trans_input is the same as in the original reaction
+    # Check if the number of structures in SMILES trans_input is the same as in the template reaction
     # Just in right part since rules are always mono-component
     if not check_nb_compounds(
         trans_input['right'],
@@ -38,14 +38,14 @@ def rebuild_rxn(
         logger
     ):
         logger.warning(
-            '      Number of compounds different in the original reaction and the input transformation'
+            '      Number of compounds different in the template reaction and the input transformation'
         )
         logger.warning('         |- INPUT TRANSFORMATION [right]: ' + str(trans_input['right']))
-        logger.warning('         |- ORIGINAL REACTION [right]: ' + str(rxn_rule['right']))
+        logger.warning('         |- TEMPLATE REACTION [right]: ' + str(rxn_rule['right']))
 
-    ## ORIGINAL REACTION
+    ## TEMPLATE REACTION
     orig_rxn = load_orig_rxn(cache, orig_rxn_id, rxn_rule['rel_direction'])
-    logger.debug('ORIGINAL REACTION:'+str(dumps(orig_rxn, indent=4)))
+    logger.debug('TEMPLATE REACTION:'+str(dumps(orig_rxn, indent=4)))
 
     ## ADD MISSING COMPOUNDS INTO FINAL TRANSFORMATION
     trans_res = complete_input_trans(
@@ -55,7 +55,7 @@ def rebuild_rxn(
         rxn_rule)
     logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(trans_res, indent=4)))
 
-    # Check if the number of structures in SMILES trans_res is the same as in the original reaction
+    # Check if the number of structures in SMILES trans_res is the same as in the template reaction
     for side in ['left', 'right']:
         if not check_nb_compounds(
             trans_res[side],
@@ -63,10 +63,10 @@ def rebuild_rxn(
             logger
         ):
             logger.warning(
-                '      Number of compounds different in the original reaction and the input transformation'
+                '      Number of compounds different in the template reaction and the input transformation'
             )
             logger.warning('         |- COMPLETED TRANSFORMATION ['+side+']: ' + str(trans_res[side]))
-            logger.warning('         |- ORIGINAL REACTION ['+side+']: ' + str(rxn_rule[side]))
+            logger.warning('         |- TEMPLATE REACTION ['+side+']: ' + str(rxn_rule[side]))
 
     return '.'.join(trans_res['left'])+'>>'+'.'.join(trans_res['right'])
 
@@ -130,12 +130,12 @@ def load_rxn_rule(
     Returns
     -------
     rxn_id: str
-        ID of the original reaction.
+        ID of the template reaction.
     rxn_rule: Dict
         Reaction Rule looked for.
     """
     cache.load(['rr_reactions'])
-    # Take the first reaction from the list of original reactions
+    # Take the first reaction from the list of template reactions
     rxn_id = next(iter(cache.get('rr_reactions')[rxn_rule_id]))
     return rxn_id, cache.get('rr_reactions')[rxn_rule_id][rxn_id]
 
@@ -147,7 +147,7 @@ def load_orig_rxn(
     logger: Logger=getLogger(__file__)
 ) -> Dict:
     """
-    Seeks for the original reaction of ID rxn_id in the cache.
+    Seeks for the template reaction of ID rxn_id in the cache.
 
     Parameters
     ----------
@@ -163,7 +163,7 @@ def load_orig_rxn(
     Returns
     -------
     orig_rxn: Dict
-        Original reaction looked for.
+        template reaction looked for.
     """
     cache.load(['rr_full_reactions'])
     rxn = cache.get('rr_full_reactions')[rxn_id]
@@ -183,7 +183,7 @@ def detect_compounds(
     logger: Logger=getLogger(__file__)
 ) -> Dict:
     """
-    Detect compounds that are different and the same between the original reaction and the reaction rule.
+    Detect compounds that are different and the same between the template reaction and the reaction rule.
 
     Parameters
     ----------
@@ -198,8 +198,8 @@ def detect_compounds(
     -------
     det_cmp: Dict
         Compounds:
-            - different between original reaction and the reaction rule
-            - same between original reaction and the reaction rul
+            - different between template reaction and the reaction rule
+            - same between template reaction and the reaction rul
     """
     # building the sets
     rxn_left_set = set(orig_rxn['left'].keys())
@@ -228,7 +228,7 @@ def complete_input_trans(
     logger: Logger=getLogger(__file__)
 ) -> Dict:
     """
-    Complete input transformation from original reaction and reaction rule.
+    Complete input transformation from template reaction and reaction rule.
 
     Parameters
     ----------
@@ -251,33 +251,33 @@ def complete_input_trans(
     trans_res = deepcopy(trans_input)
     cache.load(['cid_strc'])
 
-    ## DETECT IDENTICAL COMPOUNDS IN BOTH REACTION RULE AND ORIGINAL REACTION
+    ## DETECT IDENTICAL COMPOUNDS IN BOTH REACTION RULE AND TEMPLATE REACTION
     detected_compounds = detect_compounds(orig_rxn, rxn_rule)
 
     # LEFT
     for cmp_id in detected_compounds['toadd']['left']:
         # get smiles from compound ID
         smi = cache.get('cid_strc')[cmp_id]['smiles']
-        # add the compound x sto coeff in the original reaction
+        # add the compound x sto coeff in the template reaction
         trans_res['left'].extend([smi]*orig_rxn['left'][cmp_id])
-    # add elements already in input transfo because sto coeff could be > 1 in original reaction
+    # add elements already in input transfo because sto coeff could be > 1 in template reaction
     for cmp_id in detected_compounds['common']['left']:
         # get smiles from compound ID
         smi = cache.get('cid_strc')[cmp_id]['smiles']
-        # add the compound x-1 (already in input transfo) sto coeff in the original reaction
+        # add the compound x-1 (already in input transfo) sto coeff in the template reaction
         trans_res['left'].extend([smi]*(orig_rxn['left'][cmp_id]-1))
 
     # RIGHT
     for cmp_id in detected_compounds['toadd']['right']:
         # get smiles from compound ID
         smi = cache.get('cid_strc')[cmp_id]['smiles']
-        # add the compound x sto coeff in the original reaction
+        # add the compound x sto coeff in the template reaction
         trans_res['right'].extend([cmp_id]*orig_rxn['right'][cmp_id])
-    # add elements already in input transfo because sto coeff could be > 1 in original reaction
+    # add elements already in input transfo because sto coeff could be > 1 in template reaction
     for cmp_id in detected_compounds['common']['right']:
         # get smiles from compound ID
         smi = cache.get('cid_strc')[cmp_id]['smiles']
-        # add the compound x-1 (already in input transfo) sto coeff in the original reaction
+        # add the compound x-1 (already in input transfo) sto coeff in the template reaction
         trans_res['right'].extend([cmp_id]*(orig_rxn['right'][cmp_id]-1))
 
     return trans_res
