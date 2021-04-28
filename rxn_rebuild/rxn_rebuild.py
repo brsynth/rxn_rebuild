@@ -8,7 +8,6 @@ from typing import (
     Dict,
     Tuple
 )
-from rdkit import Chem
 from copy import deepcopy
 from json import dumps
 from rr_cache import rrCache
@@ -24,7 +23,7 @@ def rebuild_rxn(
 
     ## INPUT TRANSFORMATION
     trans_input = build_trans_input(trans_smi)
-    logger.debug('INPUT TRANSFORMATION:'+str(dumps(trans_input, indent=4)))
+    logger.debug('INPUT TRANSFORMATION: '+str(dumps(trans_input, indent=4)))
 
     ## REACTION RULE
     orig_rxn_id, rxn_rule = load_rxn_rule(cache, rxn_rule_id)
@@ -52,7 +51,8 @@ def rebuild_rxn(
         cache,
         trans_input,
         orig_rxn,
-        rxn_rule)
+        rxn_rule
+    )
     logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(trans_res, indent=4)))
 
     # Check if the number of structures in SMILES trans_res is the same as in the template reaction
