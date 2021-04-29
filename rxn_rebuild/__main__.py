@@ -104,23 +104,25 @@ def entry_point():
             )
         )
 
-    compl_rxn_smi = rebuild_rxn(
+    completed_transfos = rebuild_rxn(
               cache = cache,
         rxn_rule_id = args.rxn_rule_id,
           trans_smi = args.trans_smi,
-         ori_rxn_id = args.ori_rxn_id,
+         tmpl_rxn_id = args.ori_rxn_id,
              logger = logger
     )
 
-    logger.info(
-        '{typo}   |--- completed: {rst}{value}{rst}'.format(
-            prog = logger.name,
-            value = compl_rxn_smi,
-            # color=c_fg('white'),
-            typo=c_attr('bold'),
-            rst=c_attr('reset')
+    for tmpl_rxn_id, transfo in completed_transfos.items():
+        logger.info(
+            '{typo}   |--- completed from {rxn_id}: {rst}{transfo}{rst}'.format(
+                prog = logger.name,
+                rxn_id = tmpl_rxn_id,
+                transfo = transfo,
+                # color=c_fg('white'),
+                typo=c_attr('bold'),
+                rst=c_attr('reset')
+            )
         )
-    )
 
 
 if __name__ == '__main__':
