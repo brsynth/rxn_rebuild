@@ -17,13 +17,13 @@ from json import dumps
 def rebuild_rxn(
     cache: 'rrCache',
     rxn_rule_id: str,
-    trans_smi: str,
+    transfo: str,
     tmpl_rxn_id: str = None,
     logger: Logger=getLogger(__name__)
 ) -> str:
 
     ## INPUT TRANSFORMATION
-    trans_input = build_trans_input(trans_smi)
+    trans_input = build_trans_input(transfo)
     logger.debug('INPUT TRANSFORMATION: '+str(dumps(trans_input, indent=4)))
 
     ## REACTION RULE
@@ -52,26 +52,44 @@ def rebuild_rxn(
         tmpl_rxn = load_tmpl_rxn(cache, tmpl_rxn_id, rxn_rule['rel_direction'])
         logger.debug('TEMPLATE REACTION:'+str(dumps(tmpl_rxn, indent=4)))
 
-        ## ADD MISSING COMPOUNDS INTO FINAL TRANSFORMATION
-        trans_res = complete_input_trans(
+        completed_transfos[tmpl_rxn_id] = {}
+
+        ## ADD MISSING COMPOUNDS TO THE FINAL TRANSFORMATION
+        added_compounds = add_compounds(
             cache,
-            trans_input,
             tmpl_rxn,
             rxn_rule
         )
-        logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(trans_res, indent=4)))
+        completed_transfos[tmpl_rxn_id]['compounds'] = added_compounds
 
-        # Check if the number of compounds in both right and left parts of SMILES of the completed transformation
+        ## BUILD FINAL TRANSFORMATION
+        compl_transfo = {}
+        # Detect input format
+        if '>>' in transfo: # SMILES
+            # Add compound to add to input transformation
+            for side in ['left', 'right']:
+                compl_transfo[side] = list(trans_input[side])
+                for cmpd_id, cmpd_infos in completed_transfos[tmpl_rxn_id]['compounds'][side].items():
+                    compl_transfo[side] += [cmpd_infos['smiles']]*cmpd_infos['stoichio']
+        elif '=' in transfo: # CMPD IDs
+            # Add compound to add to input transformation
+            for side in ['left', 'right']:
+                compl_transfo[side] = list(trans_input[side])
+                for cmpd_id, cmpd_infos in completed_transfos[tmpl_rxn_id]['compounds'][side].items():
+                    compl_transfo[side] += [cmpd_infos['smiles']]*cmpd_infos['stoichio']
+        logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
+
+        # Check if the number of compounds in both right and left sides of SMILES of the completed transformation
         # is equal to the ones of the template reaction
         for side in ['left', 'right']:
-            if len(trans_res[side]) != sum(tmpl_rxn[side].values()):
+            if len(compl_transfo[side]) != sum(tmpl_rxn[side].values()):
                 logger.warning(
                     '      Number of compounds different in the template reaction and the completed transformation'
                 )
-                logger.warning('         |- COMPLETED TRANSFORMATION ['+side+']: ' + str(trans_res[side]))
+                logger.warning('         |- COMPLETED TRANSFORMATION ['+side+']: ' + str(compl_transfo[side]))
                 logger.warning('         |- TEMPLATE REACTION ['+side+']: ' + str(tmpl_rxn[side]))
 
-        completed_transfos[tmpl_rxn_id] = '.'.join(trans_res['left'])+'>>'+'.'.join(trans_res['right'])
+        completed_transfos[tmpl_rxn_id]['smiles'] = '.'.join(compl_transfo['left'])+'>>'+'.'.join(compl_transfo['right'])
 
     return completed_transfos
 
@@ -136,9 +154,10 @@ def load_rxn_rules(
     """
     cache.load(['rr_reactions'])
     rxn_rules = {}
+    # Get the reaction rule built from the template reaction of ID 'tmpl_rxn_id'
     if tmpl_rxn_id is not None:
         rxn_rules[tmpl_rxn_id] = cache.get('rr_reactions')[rxn_rule_id][tmpl_rxn_id]
-    else: # Take all template reactions
+    else: # Get all template reactions
         for rxn_id in cache.get('rr_reactions')[rxn_rule_id].keys():
             rxn_rules[rxn_id] = cache.get('rr_reactions')[rxn_rule_id][rxn_id]
     return rxn_rules
@@ -181,22 +200,19 @@ def load_tmpl_rxn(
     return rxn
 
 
-def complete_input_trans(
+def add_compounds(
     cache: 'rrCache',
-    trans_input: Dict,
     tmpl_rxn: Dict,
     rxn_rule: Dict,
     logger: Logger=getLogger(__file__)
 ) -> Dict:
     """
-    Complete input transformation from template reaction and reaction rule.
+    Find compounds to be added from template reaction and reaction rule.
 
     Parameters
     ----------
     cache: rrCache
         Pre-computed data.
-    trans_input: Dict
-        Transformation to complete
     tmpl_rxn: Dict
         Orignial reaction.
     rxn_rule: Dict
@@ -207,28 +223,39 @@ def complete_input_trans(
     Returns
     -------
     trans_res: Dict
-        Completed transformation
+        Compounds to add in various formats
     """
-    trans_res = {
-        'smiles': {},
-        'ids': {}
+    added_compounds = {
+        'left': {},
+        'right': {}
+        # 'smiles': {'left': {}, 'right': {}},
+        # 'id': {'left': {}, 'right': {}},
+        # 'formula': {'left': {}, 'right': {}},
+        # 'inchi': {'left': {}, 'right': {}},
+        # 'inchikey': {'left': {}, 'right': {}},
+        # 'name': {'left': {}, 'right': {}}
     }
-    trans_res['smiles'] = dict(trans_input)
     cache.load(['cid_strc'])
+
+    # tmpl_rxn['right']['MNXM821'] = 3
 
     for side in ['left', 'right']:
         # Get the difference between the template reaction and the reaction rule,
         # difference in compounds and in stoichio coeff
-        diff_cmpds = list(
-            (Counter(tmpl_rxn[side]) - Counter(rxn_rule[side])).elements()
+        diff_cmpds = dict(
+            (Counter(tmpl_rxn[side]) - Counter(rxn_rule[side]))
         )
-        for cmp_id in diff_cmpds:
-            # get smiles from compound ID
-            smi = cache.get('cid_strc')[cmp_id]['smiles']
-            # add the compound x sto coeff in the template reaction
-            trans_res['smiles'][side] += [smi]
+        # Fill the dictionary with all informations about the compounds to add
+        for cmp_id, cmp_sto in diff_cmpds.items():
+            added_compounds[side][cmp_id] = {}
+            added_compounds[side][cmp_id]['stoichio'] = cmp_sto
+            for key, val in cache.get('cid_strc')[cmp_id].items():
+                # add val from key
+                if key == 'mnxm':
+                    key = 'id'
+                added_compounds[side][cmp_id][key] = val
 
-    return trans_res['smiles']
+    return added_compounds
 
     # ## LEFT
     # for cmp_id in detected_compounds['toadd']['left']:

@@ -87,7 +87,7 @@ def entry_point():
     logger.info(
         '{color}{typo}Transformation\n   |- to complete:{rst} {value}{rst}'.format(
             prog = logger.name,
-            value = args.trans_smi,
+            value = args.transfo,
             color=c_fg('white'),
             typo=c_attr('bold'),
             rst=c_attr('reset')
@@ -107,17 +107,17 @@ def entry_point():
     completed_transfos = rebuild_rxn(
               cache = cache,
         rxn_rule_id = args.rxn_rule_id,
-          trans_smi = args.trans_smi,
-         tmpl_rxn_id = args.ori_rxn_id,
+            transfo = args.transfo,
+        tmpl_rxn_id = args.ori_rxn_id,
              logger = logger
     )
 
-    for tmpl_rxn_id, transfo in completed_transfos.items():
+    for tmpl_rxn_id in completed_transfos.keys():
         logger.info(
-            '{typo}   |--- completed from {rxn_id}: {rst}{transfo}{rst}'.format(
+            '{typo}   |- completed from template reaction {rxn_id}: {rst}{transfo}{rst}'.format(
                 prog = logger.name,
                 rxn_id = tmpl_rxn_id,
-                transfo = transfo,
+                transfo = completed_transfos[tmpl_rxn_id]['smiles'],
                 # color=c_fg('white'),
                 typo=c_attr('bold'),
                 rst=c_attr('reset')

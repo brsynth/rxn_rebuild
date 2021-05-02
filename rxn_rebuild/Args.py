@@ -35,9 +35,9 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Reaction rule identifier'
     )
     parser.add_argument(
-        'trans_smi',
+        'transfo',
         type=str,
-        help='SMILES string of the transformation to complete'
+        help='Transformation to complete with flatten compounds ids (e.g. MNXM181 + MNXM4 = MNXM1 + MNXM1 + MNXM1144) or in SMILES string (e.g. [H]OC(=O)C([H])=C([H])C([H])=C([H])C(=O)O[H]>>[H]Oc1c([H])c([H])c([H])c([H])c1O[H].O=O.O=O)'
     )
     parser.add_argument(
         '--ori_rxn_id',
