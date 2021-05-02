@@ -60,24 +60,18 @@ def rebuild_rxn(
             tmpl_rxn,
             rxn_rule
         )
-        completed_transfos[tmpl_rxn_id]['compounds'] = added_compounds
+        completed_transfos[tmpl_rxn_id]['added_cmpds'] = added_compounds
 
         ## BUILD FINAL TRANSFORMATION
         compl_transfo = {}
-        # Detect input format
-        if '>>' in transfo: # SMILES
-            # Add compound to add to input transformation
-            for side in ['left', 'right']:
-                compl_transfo[side] = list(trans_input[side])
-                for cmpd_id, cmpd_infos in completed_transfos[tmpl_rxn_id]['compounds'][side].items():
-                    compl_transfo[side] += [cmpd_infos['smiles']]*cmpd_infos['stoichio']
-        elif '=' in transfo: # CMPD IDs
-            # Add compound to add to input transformation
-            for side in ['left', 'right']:
-                compl_transfo[side] = list(trans_input[side])
-                for cmpd_id, cmpd_infos in completed_transfos[tmpl_rxn_id]['compounds'][side].items():
-                    compl_transfo[side] += [cmpd_infos['smiles']]*cmpd_infos['stoichio']
+        # Add compound to add to input transformation
+        for side in ['left', 'right']:
+            compl_transfo[side] = list(trans_input[side])
+            for cmpd_id, cmpd_infos in completed_transfos[tmpl_rxn_id]['added_cmpds'][side].items():
+                compl_transfo[side] += [cmpd_infos[trans_input['format']]]*cmpd_infos['stoichio']
         logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
+
+        completed_transfos[tmpl_rxn_id]['full_transfo'] = trans_input['sep_cmpd'].join(compl_transfo['left'])+trans_input['sep_side']+trans_input['sep_cmpd'].join(compl_transfo['right'])
 
         # Check if the number of compounds in both right and left sides of SMILES of the completed transformation
         # is equal to the ones of the template reaction
@@ -89,13 +83,11 @@ def rebuild_rxn(
                 logger.warning('         |- COMPLETED TRANSFORMATION ['+side+']: ' + str(compl_transfo[side]))
                 logger.warning('         |- TEMPLATE REACTION ['+side+']: ' + str(tmpl_rxn[side]))
 
-        completed_transfos[tmpl_rxn_id]['smiles'] = '.'.join(compl_transfo['left'])+'>>'+'.'.join(compl_transfo['right'])
-
     return completed_transfos
 
 
 def build_trans_input(
-    trans_smi: str,
+    transfo: str,
     logger: Logger=getLogger(__file__)
 ) -> Dict:
     """
@@ -115,13 +107,25 @@ def build_trans_input(
     """
     trans_input = {
         'left': [],
-        'right': []
+        'right': [],
+        'format': '',
+        'sep_side': '',
+        'sep_cmpd': ''
     }
-    trans_left, trans_right = trans_smi.split('>>')
-    for smi in trans_left.split('.'):
-        trans_input['left'] += [smi]
-    for smi in trans_right.split('.'):
-        trans_input['right'] += [smi]
+    # Detect input format
+    if '>>' in transfo: # SMILES
+        trans_input['format'] = 'smiles'
+        trans_input['sep_side'] = '>>'
+        trans_input['sep_cmpd'] = '.'
+    elif '=' in transfo: # CMPD IDs
+        trans_input['format'] = 'id'
+        trans_input['sep_side'] = ' = '
+        trans_input['sep_cmpd'] = ' + '
+    trans_left, trans_right = transfo.split(trans_input['sep_side'])
+    for cmpd in trans_left.split(trans_input['sep_cmpd']):
+        trans_input['left'] += [cmpd]
+    for cmpd in trans_right.split(trans_input['sep_cmpd']):
+        trans_input['right'] += [cmpd]
     return trans_input
 
 

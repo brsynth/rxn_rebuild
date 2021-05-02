@@ -117,7 +117,7 @@ def entry_point():
             '{typo}   |- completed from template reaction {rxn_id}: {rst}{transfo}{rst}'.format(
                 prog = logger.name,
                 rxn_id = tmpl_rxn_id,
-                transfo = completed_transfos[tmpl_rxn_id]['smiles'],
+                transfo = completed_transfos[tmpl_rxn_id]['full_transfo'],
                 # color=c_fg('white'),
                 typo=c_attr('bold'),
                 rst=c_attr('reset')
