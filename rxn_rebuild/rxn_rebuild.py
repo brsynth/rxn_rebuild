@@ -23,7 +23,7 @@ def rebuild_rxn(
 ) -> str:
 
     ## INPUT TRANSFORMATION
-    trans_input = build_trans_input(transfo)
+    trans_input = build_trans_input(transfo.replace(' ', '')) # remove whitespaces
     logger.debug('INPUT TRANSFORMATION: '+str(dumps(trans_input, indent=4)))
 
     ## REACTION RULE
@@ -119,8 +119,8 @@ def build_trans_input(
         trans_input['sep_cmpd'] = '.'
     elif '=' in transfo: # CMPD IDs
         trans_input['format'] = 'id'
-        trans_input['sep_side'] = ' = '
-        trans_input['sep_cmpd'] = ' + '
+        trans_input['sep_side'] = '='
+        trans_input['sep_cmpd'] = '+'
     trans_left, trans_right = transfo.split(trans_input['sep_side'])
     for cmpd in trans_left.split(trans_input['sep_cmpd']):
         trans_input['left'] += [cmpd]
