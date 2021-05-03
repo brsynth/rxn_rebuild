@@ -181,7 +181,7 @@ def load_tmpl_rxn(
     cache: rrCache
         Pre-computed data.
     rxn_id: str
-        ID of the orignial reaction.
+        ID of the template reaction.
     rr_direction: int
         Direction of the reaction used to build the rule.
     logger : Logger
@@ -232,16 +232,8 @@ def add_compounds(
     added_compounds = {
         'left': {},
         'right': {}
-        # 'smiles': {'left': {}, 'right': {}},
-        # 'id': {'left': {}, 'right': {}},
-        # 'formula': {'left': {}, 'right': {}},
-        # 'inchi': {'left': {}, 'right': {}},
-        # 'inchikey': {'left': {}, 'right': {}},
-        # 'name': {'left': {}, 'right': {}}
     }
     cache.load(['cid_strc'])
-
-    # tmpl_rxn['right']['MNXM821'] = 3
 
     for side in ['left', 'right']:
         # Get the difference between the template reaction and the reaction rule,
@@ -260,31 +252,3 @@ def add_compounds(
                 added_compounds[side][cmp_id][key] = val
 
     return added_compounds
-
-    # ## LEFT
-    # for cmp_id in detected_compounds['toadd']['left']:
-    #     # get smiles from compound ID
-    #     smi = cache.get('cid_strc')[cmp_id]['smiles']
-    #     # add the compound x sto coeff in the template reaction
-    #     trans_res['smiles']['left'].extend([smi]*tmpl_rxn['left'][cmp_id])
-    # # add elements already in input transfo because sto coeff could be > 1 in template reaction
-    # for cmp_id in detected_compounds['common']['left']:
-    #     # get smiles from compound ID
-    #     smi = cache.get('cid_strc')[cmp_id]['smiles']
-    #     # add the compound x-1 (already in input transfo) sto coeff in the template reaction
-    #     trans_res['smiles']['left'].extend([smi]*(tmpl_rxn['left'][cmp_id]-1))
-
-    # ## RIGHT
-    # for cmp_id in detected_compounds['toadd']['right']:
-    #     # get smiles from compound ID
-    #     smi = cache.get('cid_strc')[cmp_id]['smiles']
-    #     # add the compound x sto coeff in the template reaction
-    #     trans_res['smiles']['right'].extend([cmp_id]*tmpl_rxn['right'][cmp_id])
-    # # add elements already in input transfo because sto coeff could be > 1 in template reaction
-    # for cmp_id in detected_compounds['common']['right']:
-    #     # get smiles from compound ID
-    #     smi = cache.get('cid_strc')[cmp_id]['smiles']
-    #     # add the compound x-1 (already in input transfo) sto coeff in the template reaction
-    #     trans_res['smiles']['right'].extend([cmp_id]*(tmpl_rxn['right'][cmp_id]-1))
-
-    # return trans_res['smiles']
