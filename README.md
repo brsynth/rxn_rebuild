@@ -2,7 +2,25 @@
 
 [![Anaconda-Server Badge](https://anaconda.org/brsynth/rxn_rebuild/badges/latest_release_date.svg)](https://anaconda.org/brsynth/rxn_rebuild) [![Anaconda-Server Badge](https://anaconda.org/brsynth/rxn_rebuild/badges/version.svg)](https://anaconda.org/brsynth/rxn_rebuild)
 
-Rebuild full reaction from reaction rule by adding co-factors removed to generate the rule.
+Rebuild full reaction from a reaction rule ID and a chemical transformation by adding co-factors removed when the rule has been generated. The algorithm proceeds to the following:
+- seeks for the reaction(s) rule(s) of the given reaction rule ID, in the cache
+- for each reaction rule
+    - seeks for the template reaction of the given reaction rule ID, in the cache
+    - find compounds to add by doing the difference between the template reaction and the reaction rule
+  
+## Input
+- reaction rule ID
+- chemical transfomation as SMILES (xxx.xxx>>xxx.xxx) or IDs (CMPD_ID_1 + CMPD_ID_2 = CMPD_ID_3)
+- (Optional) template reaction ID
+
+## Output
+- Prints out the full completed transformation
+- Returns a dictionary with the following keys:
+  - 'full_transfo': completed transformation (SMILES or IDs)
+  - 'added_cmpds': sub-dictionary of compounds to add to the transformation with:
+    - keys: IDs
+    - values: infos (SMILES, InChI, InChIKey, formula, name)
+
 
 ## Prerequisites
 
