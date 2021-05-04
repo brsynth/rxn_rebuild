@@ -26,9 +26,12 @@ def rebuild_rxn(
     trans_input = build_trans_input(transfo.replace(' ', '')) # remove whitespaces
     logger.debug('INPUT TRANSFORMATION: '+str(dumps(trans_input, indent=4)))
 
-    ## REACTION RULE
+    ## LOAD CACHE
+    load_cache(cache)
+
+    ## REACTION RULES
     rxn_rules = load_rxn_rules(
-        cache,
+        cache.get('rr_reactions'),
         rxn_rule_id,
         tmpl_rxn_id
     )
@@ -49,17 +52,22 @@ def rebuild_rxn(
             logger.warning('         |- REACTION RULE [right]: ' + str(rxn_rule['right']))
 
         ## TEMPLATE REACTION
-        tmpl_rxn = load_tmpl_rxn(cache, tmpl_rxn_id, rxn_rule['rel_direction'])
+        tmpl_rxn = load_tmpl_rxn(
+            cache.get('rr_full_reactions'),
+            tmpl_rxn_id,
+            rxn_rule['rel_direction']
+        )
         logger.debug('TEMPLATE REACTION:'+str(dumps(tmpl_rxn, indent=4)))
 
         completed_transfos[tmpl_rxn_id] = {}
 
         ## ADD MISSING COMPOUNDS TO THE FINAL TRANSFORMATION
         added_compounds = add_compounds(
-            cache,
+            cache.get('cid_strc'),
             tmpl_rxn,
             rxn_rule
         )
+
         completed_transfos[tmpl_rxn_id]['added_cmpds'] = added_compounds
 
         ## BUILD FINAL TRANSFORMATION
@@ -67,11 +75,13 @@ def rebuild_rxn(
         # Add compound to add to input transformation
         for side in ['left', 'right']:
             compl_transfo[side] = list(trans_input[side])
+            # Known compounds with all infos (stoichio, cid, smiles, InChI...)
             for cmpd_id, cmpd_infos in completed_transfos[tmpl_rxn_id]['added_cmpds'][side].items():
                 compl_transfo[side] += [cmpd_infos[trans_input['format']]]*cmpd_infos['stoichio']
+            # Uknown compounds with only cid and stoichio
+            for cmpd_id, cmpd_infos in completed_transfos[tmpl_rxn_id]['added_cmpds'][side+'_nostruct'].items():
+                compl_transfo[side] += [cmpd_infos['cid']]*cmpd_infos['stoichio']
         logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
-
-        completed_transfos[tmpl_rxn_id]['full_transfo'] = trans_input['sep_cmpd'].join(compl_transfo['left'])+trans_input['sep_side']+trans_input['sep_cmpd'].join(compl_transfo['right'])
 
         # Check if the number of compounds in both right and left sides of SMILES of the completed transformation
         # is equal to the ones of the template reaction
@@ -83,7 +93,20 @@ def rebuild_rxn(
                 logger.warning('         |- COMPLETED TRANSFORMATION ['+side+']: ' + str(compl_transfo[side]))
                 logger.warning('         |- TEMPLATE REACTION ['+side+']: ' + str(tmpl_rxn[side]))
 
+        if added_compounds['left_nostruct'] == {} and added_compounds['right_nostruct'] == {} or trans_input['format'] != 'smiles':
+            completed_transfos[tmpl_rxn_id]['full_transfo'] = trans_input['sep_cmpd'].join(compl_transfo['left'])+trans_input['sep_side']+trans_input['sep_cmpd'].join(compl_transfo['right'])
+
+
     return completed_transfos
+
+
+def load_cache(
+    cache: 'rrCache',
+    logger: Logger=getLogger(__file__)
+) -> Dict:
+    cache.load(['rr_reactions'])
+    cache.load(['rr_full_reactions'])
+    cache.load(['cid_strc'])
 
 
 def build_trans_input(
@@ -118,7 +141,7 @@ def build_trans_input(
         trans_input['sep_side'] = '>>'
         trans_input['sep_cmpd'] = '.'
     elif '=' in transfo: # CMPD IDs
-        trans_input['format'] = 'id'
+        trans_input['format'] = 'cid'
         trans_input['sep_side'] = '='
         trans_input['sep_cmpd'] = '+'
     trans_left, trans_right = transfo.split(trans_input['sep_side'])
@@ -130,7 +153,7 @@ def build_trans_input(
 
 
 def load_rxn_rules(
-    cache: 'rrCache',
+    rxn_rules_all: Dict,
     rxn_rule_id: str,
     tmpl_rxn_id: str,
     logger: Logger=getLogger(__file__)
@@ -140,8 +163,8 @@ def load_rxn_rules(
 
     Parameters
     ----------
-    cache: rrCache
-        Pre-computed data.
+    rxn_rules_all: Dict
+        Reaction rules.
     rxn_rule_id: str
         ID of reaction rule.
     tmpl_rxn_id: str
@@ -156,19 +179,18 @@ def load_rxn_rules(
     rxn_rule: Dict
         Reaction Rule looked for.
     """
-    cache.load(['rr_reactions'])
     rxn_rules = {}
     # Get the reaction rule built from the template reaction of ID 'tmpl_rxn_id'
     if tmpl_rxn_id is not None:
-        rxn_rules[tmpl_rxn_id] = cache.get('rr_reactions')[rxn_rule_id][tmpl_rxn_id]
-    else: # Get all template reactions
-        for rxn_id in cache.get('rr_reactions')[rxn_rule_id].keys():
-            rxn_rules[rxn_id] = cache.get('rr_reactions')[rxn_rule_id][rxn_id]
+        rxn_rules[tmpl_rxn_id] = rxn_rules_all[rxn_rule_id][tmpl_rxn_id]
+    else: # Get reaction rules built from all template reactions
+        for rxn_id, rxn_rule in rxn_rules_all[rxn_rule_id].items():
+            rxn_rules[rxn_id] = rxn_rule
     return rxn_rules
 
 
 def load_tmpl_rxn(
-    cache: 'rrCache',
+    tmplt_rxns: Dict,
     rxn_id: str,
     rr_direction: int,
     logger: Logger=getLogger(__file__)
@@ -178,8 +200,8 @@ def load_tmpl_rxn(
 
     Parameters
     ----------
-    cache: rrCache
-        Pre-computed data.
+    tmplt_rxns: Dict
+        Template (original) reactions.
     rxn_id: str
         ID of the template reaction.
     rr_direction: int
@@ -192,8 +214,7 @@ def load_tmpl_rxn(
     tmpl_rxn: Dict
         template reaction looked for.
     """
-    cache.load(['rr_full_reactions'])
-    rxn = cache.get('rr_full_reactions')[rxn_id]
+    rxn = tmplt_rxns[rxn_id]
     if rr_direction == 1:
         rxn_left  = rxn['left']
         rxn_right = rxn['right']
@@ -205,18 +226,18 @@ def load_tmpl_rxn(
 
 
 def add_compounds(
-    cache: 'rrCache',
+    cid_strc: Dict,
     tmpl_rxn: Dict,
     rxn_rule: Dict,
     logger: Logger=getLogger(__file__)
-) -> Dict:
+) -> Tuple[Dict, List]:
     """
     Find compounds to be added from template reaction and reaction rule.
 
     Parameters
     ----------
-    cache: rrCache
-        Pre-computed data.
+    cid_strc: Dict
+        Compound structures.
     tmpl_rxn: Dict
         Orignial reaction.
     rxn_rule: Dict
@@ -226,14 +247,18 @@ def add_compounds(
 
     Returns
     -------
-    trans_res: Dict
+    added_compounds: Dict
         Compounds to add in various formats
+    compounds_nostruct: List
+        Compounds with no structure
     """
     added_compounds = {
         'left': {},
-        'right': {}
+        'right': {},
+        'left_nostruct': {},
+        'right_nostruct': {}
     }
-    cache.load(['cid_strc'])
+    compounds_nostruct = []
 
     for side in ['left', 'right']:
         # Get the difference between the template reaction and the reaction rule,
@@ -243,12 +268,20 @@ def add_compounds(
         )
         # Fill the dictionary with all informations about the compounds to add
         for cmp_id, cmp_sto in diff_cmpds.items():
-            added_compounds[side][cmp_id] = {}
-            added_compounds[side][cmp_id]['stoichio'] = cmp_sto
-            for key, val in cache.get('cid_strc')[cmp_id].items():
-                # add val from key
-                if key == 'mnxm':
-                    key = 'id'
-                added_compounds[side][cmp_id][key] = val
+            # Handle compounds with no structure
+            if cmp_id in cid_strc:
+                added_compounds[side][cmp_id] = {}
+                added_compounds[side][cmp_id]['stoichio'] = cmp_sto
+                for key, val in cid_strc[cmp_id].items():
+                    # add val from key
+                    if key == 'mnxm':
+                        key = 'cid'
+                    added_compounds[side][cmp_id][key] = val
+            else:
+                logger.warning('      Compounds with no structure: '+cmp_id)
+                # Fill only 'stoichio' information
+                added_compounds[side+'_nostruct'][cmp_id] = {}
+                added_compounds[side+'_nostruct'][cmp_id]['stoichio'] = cmp_sto
+                added_compounds[side+'_nostruct'][cmp_id]['cid'] = cmp_id
 
     return added_compounds

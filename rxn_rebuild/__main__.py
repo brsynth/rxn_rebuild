@@ -11,7 +11,8 @@ from argparse import (
     Namespace
 )
 from logging import (
-    Logger
+    Logger,
+    basicConfig as log_basicConfig,
 )
 from colored import (
     attr as c_attr,
@@ -69,10 +70,13 @@ def entry_point():
     args   = parser.parse_args()
 
     logger = init(parser, args)
+    if args.log_file != '':
+        log_basicConfig(filename=args.log_file, encoding='utf-8')
 
     cache = rrCache(
         db='file',
-        attrs=None
+        attrs=None,
+        # logger=logger
     )
 
     logger.info(
@@ -113,17 +117,40 @@ def entry_point():
     )
 
     for tmpl_rxn_id in completed_transfos.keys():
-        logger.info(
-            '{typo}   |- completed from template reaction {rxn_id}: {rst}{transfo}{rst}'.format(
-                prog = logger.name,
-                rxn_id = tmpl_rxn_id,
-                transfo = completed_transfos[tmpl_rxn_id]['full_transfo'],
-                # color=c_fg('white'),
-                typo=c_attr('bold'),
-                rst=c_attr('reset')
+        if 'full_transfo' in completed_transfos[tmpl_rxn_id]:
+            logger.info(
+                '{typo}   |- completed from template reaction {rxn_id}: {rst}{transfo}'.format(
+                    rxn_id=tmpl_rxn_id,
+                    transfo=completed_transfos[tmpl_rxn_id]['full_transfo'],
+                    typo=c_attr('bold'),
+                    rst=c_attr('reset')
+                )
             )
-        )
-
+        else:
+            logger.info(
+                '{typo}   |- completed from template reaction {rxn_id}: {rst}'.format(
+                    rxn_id=tmpl_rxn_id,
+                    typo=c_attr('bold'),
+                    rst=c_attr('reset')
+                )
+            )
+            logger.info(
+                '{typo}{color}         Unknown structure for some compounds{rst}'.format(
+                    rxn_id=tmpl_rxn_id,
+                    typo=c_attr('bold'),
+                    color=c_fg('white'),
+                    rst=c_attr('reset')
+                )
+            )
+            for side in ['left', 'right']:
+                logger.info(
+                    '{rst}{typo}            |- {side}: {rst}{compounds}{rst}'.format(
+                        side=side.upper(),
+                        compounds=' '.join(list(completed_transfos[tmpl_rxn_id]['added_cmpds'][side+'_nostruct'].keys())),
+                        typo=c_attr('bold'),
+                        rst=c_attr('reset')
+                    )
+                )
 
 if __name__ == '__main__':
     entry_point()
