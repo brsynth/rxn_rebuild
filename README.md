@@ -61,10 +61,10 @@ from rxn_rebuild import rebuild_rxn, build_args_parser
 parser = build_args_parser()
 args   = parser.parse_args()
 
-compl_rxn_smi = rebuild_rxn(
+completed_transfos = rebuild_rxn(
     cache = rrCache(db='file', attrs=None),
     rxn_rule_id = args.rxn_rule_id,
-    trans_smi = args.trans_smi,
+    transfo = args.trans_smi,
     ori_rxn_id = args.ori_rxn_id
 )
 ```
