@@ -36,20 +36,23 @@ def rebuild_rxn(
         tmpl_rxn_id
     )
 
+    # One completed transformation per template reaction
     completed_transfos = {}
 
     for tmpl_rxn_id, rxn_rule in rxn_rules.items():
         logger.debug('REACTION RULE:'+str(dumps(rxn_rule, indent=4)))
 
+        ## CHECK
         # Check if the number of structures in the right part of SMILES of transformation to complete
         # is equal to the number of products of the template reaction used to build the reaction rule.
         # Just in right part since rules are always mono-component
-        if len(trans_input['right']) != sum(rxn_rule['right'].values()):
-            logger.warning(
-                '      Number of compounds different in the template reaction and the transformation to complete'
-            )
-            logger.warning('         |- INPUT TRANSFORMATION [right]: ' + str(trans_input['right']))
-            logger.warning('         |- REACTION RULE [right]: ' + str(rxn_rule['right']))
+        check_compounds_number(
+            'INPUT TRANSFORMATION',
+            trans_input,
+            'REACTION RULE',
+            rxn_rule,
+            'right'
+        )
 
         ## TEMPLATE REACTION
         tmpl_rxn = load_tmpl_rxn(
@@ -68,34 +71,56 @@ def rebuild_rxn(
             rxn_rule
         )
 
-        completed_transfos[tmpl_rxn_id]['added_cmpds'] = added_compounds
-
         ## BUILD FINAL TRANSFORMATION
         compl_transfo = complete_transfo(
             trans_input,
-            completed_transfos[tmpl_rxn_id]
+            added_compounds
         )
         logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
 
+        ## CHECK
         # Check if the number of compounds in both right and left sides of SMILES of the completed transformation
         # is equal to the ones of the template reaction
         for side in ['left', 'right']:
-            if len(compl_transfo[side]) != sum(tmpl_rxn[side].values()):
-                logger.warning(
-                    '      Number of compounds different in the template reaction and the completed transformation'
-                )
-                logger.warning('         |- COMPLETED TRANSFORMATION ['+side+']: ' + str(compl_transfo[side]))
-                logger.warning('         |- TEMPLATE REACTION ['+side+']: ' + str(tmpl_rxn[side]))
+            check_compounds_number(
+                'COMPLETED TRANSFORMATION',
+                compl_transfo,
+                'TEMPLATE REACTION',
+                tmpl_rxn,
+                side
+            )
 
-        if added_compounds['left_nostruct'] == {} and added_compounds['right_nostruct'] == {} or trans_input['format'] != 'smiles':
+        if  added_compounds['left_nostruct'] == {} \
+        and added_compounds['right_nostruct'] == {} \
+        or  trans_input['format'] != 'smiles':
             completed_transfos[tmpl_rxn_id]['full_transfo'] = trans_input['sep_cmpd'].join(compl_transfo['left'])+trans_input['sep_side']+trans_input['sep_cmpd'].join(compl_transfo['right'])
+
+        completed_transfos[tmpl_rxn_id]['added_cmpds'] = added_compounds
 
     return completed_transfos
 
 
+def check_compounds_number(
+    rxn_name_1: str,
+    rxn_1: Dict,
+    rxn_name_2: str,
+    rxn_2: Dict,
+    side: str,
+    logger: Logger=getLogger(__name__)
+) -> None:
+    # Check if the number of structures in the part of SMILES of rxn_1
+    # is equal to the number of products of rxn_2.
+    if len(rxn_1[side]) != sum(rxn_2[side].values()):
+        logger.warning(
+            '      Number of compounds different in the template reaction and the transformation to complete'
+        )
+        logger.warning('         |- '+rxn_name_1+' ['+side+']: ' + str(rxn_1[side]))
+        logger.warning('         |- '+rxn_name_2+' ['+side+']: ' + str(rxn_2[side]))
+
+
 def complete_transfo(
     trans_input: Dict,
-    rxn: Dict,
+    added_cmpds: Dict,
     logger: Logger=getLogger(__name__)
 ) -> Dict:
     compl_transfo = {}
@@ -103,10 +128,10 @@ def complete_transfo(
     for side in ['left', 'right']:
         compl_transfo[side] = list(trans_input[side])
         # All infos (stoichio, cid, smiles, InChI...) for compounds with known structures a
-        for cmpd_id, cmpd_infos in rxn['added_cmpds'][side].items():
+        for cmpd_id, cmpd_infos in added_cmpds[side].items():
             compl_transfo[side] += [cmpd_infos[trans_input['format']]]*cmpd_infos['stoichio']
         # Only cid and stoichio for compounds with no structure
-        for cmpd_id, cmpd_infos in rxn['added_cmpds'][side+'_nostruct'].items():
+        for cmpd_id, cmpd_infos in added_cmpds[side+'_nostruct'].items():
             compl_transfo[side] += [cmpd_infos['cid']]*cmpd_infos['stoichio']
     return compl_transfo
 
