@@ -65,7 +65,7 @@ completed_transfos = rebuild_rxn(
     cache = rrCache(db='file', attrs=None),
     rxn_rule_id = args.rxn_rule_id,
     transfo = args.trans_smi,
-    ori_rxn_id = args.ori_rxn_id
+    tmpl_rxn_id = args.ori_rxn_id
 )
 ```
 
