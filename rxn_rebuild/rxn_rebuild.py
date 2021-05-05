@@ -71,16 +71,10 @@ def rebuild_rxn(
         completed_transfos[tmpl_rxn_id]['added_cmpds'] = added_compounds
 
         ## BUILD FINAL TRANSFORMATION
-        compl_transfo = {}
-        # Add compound to add to input transformation
-        for side in ['left', 'right']:
-            compl_transfo[side] = list(trans_input[side])
-            # Known compounds with all infos (stoichio, cid, smiles, InChI...)
-            for cmpd_id, cmpd_infos in completed_transfos[tmpl_rxn_id]['added_cmpds'][side].items():
-                compl_transfo[side] += [cmpd_infos[trans_input['format']]]*cmpd_infos['stoichio']
-            # Uknown compounds with only cid and stoichio
-            for cmpd_id, cmpd_infos in completed_transfos[tmpl_rxn_id]['added_cmpds'][side+'_nostruct'].items():
-                compl_transfo[side] += [cmpd_infos['cid']]*cmpd_infos['stoichio']
+        compl_transfo = complete_transfo(
+            trans_input,
+            completed_transfos[tmpl_rxn_id]
+        )
         logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
 
         # Check if the number of compounds in both right and left sides of SMILES of the completed transformation
@@ -96,8 +90,25 @@ def rebuild_rxn(
         if added_compounds['left_nostruct'] == {} and added_compounds['right_nostruct'] == {} or trans_input['format'] != 'smiles':
             completed_transfos[tmpl_rxn_id]['full_transfo'] = trans_input['sep_cmpd'].join(compl_transfo['left'])+trans_input['sep_side']+trans_input['sep_cmpd'].join(compl_transfo['right'])
 
-
     return completed_transfos
+
+
+def complete_transfo(
+    trans_input: Dict,
+    rxn: Dict,
+    logger: Logger=getLogger(__name__)
+) -> Dict:
+    compl_transfo = {}
+    # Add compound to add to input transformation
+    for side in ['left', 'right']:
+        compl_transfo[side] = list(trans_input[side])
+        # All infos (stoichio, cid, smiles, InChI...) for compounds with known structures a
+        for cmpd_id, cmpd_infos in rxn['added_cmpds'][side].items():
+            compl_transfo[side] += [cmpd_infos[trans_input['format']]]*cmpd_infos['stoichio']
+        # Only cid and stoichio for compounds with no structure
+        for cmpd_id, cmpd_infos in rxn['added_cmpds'][side+'_nostruct'].items():
+            compl_transfo[side] += [cmpd_infos['cid']]*cmpd_infos['stoichio']
+    return compl_transfo
 
 
 def load_cache(
