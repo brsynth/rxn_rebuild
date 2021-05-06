@@ -97,11 +97,22 @@ def entry_point():
             rst=c_attr('reset')
         )
     )
+    if args.tmpl_rxn_id is not None:
+        logger.info(
+            '{color}{typo}Original (template) reaction ID\n   |-{rst} {value}{rst}'.format(
+                prog = logger.name,
+                value = args.tmpl_rxn_id,
+                color=c_fg('white'),
+                typo=c_attr('bold'),
+                rst=c_attr('reset')
+            )
+        )
 
     completed_transfos = rebuild_rxn(
               cache = cache,
         rxn_rule_id = args.rxn_rule_id,
             transfo = args.transfo,
+        tmpl_rxn_id = args.tmpl_rxn_id,
              logger = logger
     )
 

@@ -18,6 +18,7 @@ def rebuild_rxn(
     cache: 'rrCache',
     rxn_rule_id: str,
     transfo: str,
+    tmpl_rxn_id: str = None,
     logger: Logger=getLogger(__name__)
 ) -> str:
 
@@ -47,10 +48,11 @@ def rebuild_rxn(
         )
 
         ## TEMPLATE REACTION
-        tmpl_rxn = build_tmpl_rxn(
+        tmpl_rxn = load_tmpl_rxn(
             cache.get('rr_full_reactions'),
             tmpl_rxn_id,
-            rxn_rule['rel_direction']
+            rxn_rule['rel_direction'],
+            logger=logger
         )
         logger.debug('TEMPLATE REACTION:'+str(dumps(tmpl_rxn, indent=4)))
 
@@ -58,9 +60,10 @@ def rebuild_rxn(
 
         ## ADD MISSING COMPOUNDS TO THE FINAL TRANSFORMATION
         added_compounds = add_compounds(
-            cache.get('cid_strc'),
             tmpl_rxn,
-            rxn_rule
+            rxn_rule,
+            logger=logger
+            cache.get('cid_strc'),
         )
 
         ## BUILD FINAL TRANSFORMATION
@@ -180,7 +183,44 @@ def build_trans_input(
     return trans_input
 
 
-def build_tmpl_rxn(
+def load_rxn_rules(
+    rxn_rules_all: Dict,
+    rxn_rule_id: str,
+    tmpl_rxn_id: str,
+    logger: Logger=getLogger(__file__)
+) -> Tuple[str, Dict]:
+    """
+    Seeks for the reaction rule of ID rxn_rule_id in the cache.
+
+    Parameters
+    ----------
+    rxn_rules_all: Dict
+        Reaction rules.
+    rxn_rule_id: str
+        ID of reaction rule.
+    tmpl_rxn_id: str
+        ID of template reaction.
+    logger : Logger
+        The logger object.
+
+    Returns
+    -------
+    rxn_id: str
+        ID of the template reaction.
+    rxn_rule: Dict
+        Reaction Rule looked for.
+    """
+    rxn_rules = {}
+    # Get the reaction rule built from the template reaction of ID 'tmpl_rxn_id'
+    if tmpl_rxn_id is not None:
+        rxn_rules[tmpl_rxn_id] = rxn_rules_all[rxn_rule_id][tmpl_rxn_id]
+    else: # Get reaction rules built from all template reactions
+        for rxn_id, rxn_rule in rxn_rules_all[rxn_rule_id].items():
+            rxn_rules[rxn_id] = rxn_rule
+    return rxn_rules
+
+
+def load_tmpl_rxn(
     tmplt_rxns: Dict,
     rxn_id: str,
     rr_direction: int,
@@ -217,9 +257,9 @@ def build_tmpl_rxn(
 
 
 def add_compounds(
-    cid_strc: Dict,
     tmpl_rxn: Dict,
     rxn_rule: Dict,
+    cid_strc: Dict,
     logger: Logger=getLogger(__file__)
 ) -> Tuple[Dict, List]:
     """
@@ -227,12 +267,12 @@ def add_compounds(
 
     Parameters
     ----------
-    cid_strc: Dict
-        Compound structures.
     tmpl_rxn: Dict
         Orignial reaction.
     rxn_rule: Dict
         Reaction rule.
+    cid_strc: Dict
+        Compound structures.
     logger : Logger
         The logger object.
 
