@@ -79,17 +79,21 @@ def entry_point():
         # logger=logger
     )
 
+    msg_rr = '{color}{typo}Reaction Rule\n   |- ID:{rst} {rr_id}'
+    if args.tmpl_rxn_id is not None:
+        msg_rr += '\n{color}{typo}   |- template reaction:{rst} {tmpl_rxn_id}'
     logger.info(
-        '{color}{typo}Reaction Rule ID\n   |-{rst} {value}{rst}'.format(
+        msg_rr.format(
             prog = logger.name,
-            value = args.rxn_rule_id,
+            rr_id = args.rxn_rule_id,
+            tmpl_rxn_id = args.tmpl_rxn_id,
             color=c_fg('white'),
             typo=c_attr('bold'),
             rst=c_attr('reset')
         )
     )
     logger.info(
-        '{color}{typo}Transformation\n   |- to complete:{rst} {value}{rst}'.format(
+        '{color}{typo}Transformation\n   |- to complete:{rst} {value}'.format(
             prog = logger.name,
             value = args.transfo,
             color=c_fg('white'),
@@ -97,16 +101,6 @@ def entry_point():
             rst=c_attr('reset')
         )
     )
-    if args.tmpl_rxn_id is not None:
-        logger.info(
-            '{color}{typo}Original (template) reaction ID\n   |-{rst} {value}{rst}'.format(
-                prog = logger.name,
-                value = args.tmpl_rxn_id,
-                color=c_fg('white'),
-                typo=c_attr('bold'),
-                rst=c_attr('reset')
-            )
-        )
 
     completed_transfos = rebuild_rxn(
               cache = cache,

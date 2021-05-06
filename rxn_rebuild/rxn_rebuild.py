@@ -14,6 +14,9 @@ from collections import Counter
 from json import dumps
 
 
+SIDES = ['left', 'right']
+
+
 def rebuild_rxn(
     cache: 'rrCache',
     rxn_rule_id: str,
@@ -24,76 +27,106 @@ def rebuild_rxn(
 
     ## INPUT TRANSFORMATION
     trans_input = build_trans_input(transfo.replace(' ', '')) # remove whitespaces
-    logger.debug('INPUT TRANSFORMATION: '+str(dumps(trans_input, indent=4)))
 
     ## LOAD CACHE
     load_cache(cache)
 
-    # One completed transformation per template reaction
+    ## COMPLETE TRANSFORMATION
     completed_transfos = {}
-
-    for tmpl_rxn_id, rxn_rule in cache.get('rr_reactions')[rxn_rule_id].items():
-        logger.debug('REACTION RULE:'+str(dumps(rxn_rule, indent=4)))
-
-        ## CHECK
-        # Check if the number of structures in the right part of SMILES of transformation to complete
-        # is equal to the number of products of the template reaction used to build the reaction rule.
-        # Just in right part since rules are always mono-component
-        check_compounds_number(
-            'INPUT TRANSFORMATION',
+    if tmpl_rxn_id is not None:
+        completed_transfos[tmpl_rxn_id] = complete_transfo(
             trans_input,
-            'REACTION RULE',
-            rxn_rule,
-            'right'
-        )
-
-        ## TEMPLATE REACTION
-        tmpl_rxn = load_tmpl_rxn(
-            cache.get('rr_full_reactions'),
+            cache.get('rr_reactions')[rxn_rule_id][tmpl_rxn_id],
             tmpl_rxn_id,
-            rxn_rule['rel_direction'],
+            cache,
             logger=logger
         )
-        logger.debug('TEMPLATE REACTION:'+str(dumps(tmpl_rxn, indent=4)))
-
-        completed_transfos[tmpl_rxn_id] = {}
-
-        ## ADD MISSING COMPOUNDS TO THE FINAL TRANSFORMATION
-        added_compounds = add_compounds(
-            tmpl_rxn,
-            rxn_rule,
-            logger=logger
-            cache.get('cid_strc'),
-        )
-
-        ## BUILD FINAL TRANSFORMATION
-        compl_transfo = complete_transfo(
-            trans_input,
-            added_compounds
-        )
-        logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
-
-        ## CHECK
-        # Check if the number of compounds in both right and left sides of SMILES of the completed transformation
-        # is equal to the ones of the template reaction
-        for side in ['left', 'right']:
-            check_compounds_number(
-                'COMPLETED TRANSFORMATION',
-                compl_transfo,
-                'TEMPLATE REACTION',
-                tmpl_rxn,
-                side
+    else: # One completed transformation per template reaction
+        for tpl_rxn_id, rxn_rule in cache.get('rr_reactions')[rxn_rule_id].items():
+            completed_transfos[tpl_rxn_id] = complete_transfo(
+                trans_input,
+                rxn_rule,
+                tpl_rxn_id,
+                cache,
+                logger=logger
             )
-
-        if  added_compounds['left_nostruct'] == {} \
-        and added_compounds['right_nostruct'] == {} \
-        or  trans_input['format'] != 'smiles':
-            completed_transfos[tmpl_rxn_id]['full_transfo'] = trans_input['sep_cmpd'].join(compl_transfo['left'])+trans_input['sep_side']+trans_input['sep_cmpd'].join(compl_transfo['right'])
-
-        completed_transfos[tmpl_rxn_id]['added_cmpds'] = added_compounds
 
     return completed_transfos
 
+
+def complete_transfo(
+    trans_input: Dict,
+    rxn_rule: Dict,
+    tmpl_rxn_id: str,
+    cache: 'rrCache',
+    logger: Logger=getLogger(__name__)
+) -> Dict:
+
+    completed_transfo = {}
+
+    logger.debug('REACTION RULE:'+str(dumps(rxn_rule, indent=4)))
+
+    ## CHECK 1/2
+    # Check if the number of structures in the right part of SMILES of transformation to complete
+    # is equal to the number of products of the template reaction used to build the reaction rule.
+    # Just in right part since rules are always mono-component
+    check_compounds_number(
+        'INPUT TRANSFORMATION',
+        trans_input,
+        'REACTION RULE',
+        rxn_rule,
+        'right',
+        logger=logger
+    )
+
+    ## TEMPLATE REACTION
+    tmpl_rxn = load_tmpl_rxn(
+        cache.get('rr_full_reactions'),
+        tmpl_rxn_id,
+        rxn_rule['rel_direction'],
+        logger=logger
+    )
+
+    ## ADD MISSING COMPOUNDS TO THE FINAL TRANSFORMATION
+    missing_compounds = detect_missing_compounds(
+        tmpl_rxn,
+        rxn_rule,
+        cache.get('cid_strc'),
+        logger=logger
+    )
+
+    ## BUILD FINAL TRANSFORMATION
+    compl_transfo = build_final_transfo(
+        trans_input,
+        missing_compounds,
+        logger=logger
+    )
+
+    ## CHECK 2/2
+    # Check if the number of compounds in both right and left sides of SMILES of the completed transformation
+    # is equal to the ones of the template reaction
+    for side in SIDES:
+        check_compounds_number(
+            'COMPLETED TRANSFORMATION',
+            compl_transfo,
+            'TEMPLATE REACTION',
+            tmpl_rxn,
+            side,
+            logger=logger
+        )
+
+    # Build full transformation only if there is no compound without structure
+    # or if the input format of the transforamtion to complete is 'cid'
+    if missing_compounds['left_nostruct'] == missing_compounds['right_nostruct'] == {} \
+    or trans_input['format'] == 'cid':
+        completed_transfo['full_transfo'] = \
+              trans_input['sep_cmpd'].join(compl_transfo['left']) \
+            + trans_input['sep_side'] \
+            + trans_input['sep_cmpd'].join(compl_transfo['right'])
+
+    completed_transfo['added_cmpds'] = missing_compounds
+
+    return completed_transfo
 
 def check_compounds_number(
     rxn_name_1: str,
@@ -113,14 +146,14 @@ def check_compounds_number(
         logger.warning('         |- '+rxn_name_2+' ['+side+']: ' + str(rxn_2[side]))
 
 
-def complete_transfo(
+def build_final_transfo(
     trans_input: Dict,
     added_cmpds: Dict,
     logger: Logger=getLogger(__name__)
 ) -> Dict:
     compl_transfo = {}
     # Add compound to add to input transformation
-    for side in ['left', 'right']:
+    for side in SIDES:
         compl_transfo[side] = list(trans_input[side])
         # All infos (stoichio, cid, smiles, InChI...) for compounds with known structures a
         for cmpd_id, cmpd_infos in added_cmpds[side].items():
@@ -128,6 +161,7 @@ def complete_transfo(
         # Only cid and stoichio for compounds with no structure
         for cmpd_id, cmpd_infos in added_cmpds[side+'_nostruct'].items():
             compl_transfo[side] += [cmpd_infos['cid']]*cmpd_infos['stoichio']
+    logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
     return compl_transfo
 
 
@@ -175,49 +209,13 @@ def build_trans_input(
         trans_input['format'] = 'cid'
         trans_input['sep_side'] = '='
         trans_input['sep_cmpd'] = '+'
-    trans_left, trans_right = transfo.split(trans_input['sep_side'])
-    for cmpd in trans_left.split(trans_input['sep_cmpd']):
-        trans_input['left'] += [cmpd]
-    for cmpd in trans_right.split(trans_input['sep_cmpd']):
-        trans_input['right'] += [cmpd]
+    trans = {}
+    trans['left'], trans['right'] = transfo.split(trans_input['sep_side'])
+    for side in SIDES:
+        for cmpd in trans[side].split(trans_input['sep_cmpd']):
+            trans_input[side] += [cmpd]
+    logger.debug('INPUT TRANSFORMATION: '+str(dumps(trans_input, indent=4)))
     return trans_input
-
-
-def load_rxn_rules(
-    rxn_rules_all: Dict,
-    rxn_rule_id: str,
-    tmpl_rxn_id: str,
-    logger: Logger=getLogger(__file__)
-) -> Tuple[str, Dict]:
-    """
-    Seeks for the reaction rule of ID rxn_rule_id in the cache.
-
-    Parameters
-    ----------
-    rxn_rules_all: Dict
-        Reaction rules.
-    rxn_rule_id: str
-        ID of reaction rule.
-    tmpl_rxn_id: str
-        ID of template reaction.
-    logger : Logger
-        The logger object.
-
-    Returns
-    -------
-    rxn_id: str
-        ID of the template reaction.
-    rxn_rule: Dict
-        Reaction Rule looked for.
-    """
-    rxn_rules = {}
-    # Get the reaction rule built from the template reaction of ID 'tmpl_rxn_id'
-    if tmpl_rxn_id is not None:
-        rxn_rules[tmpl_rxn_id] = rxn_rules_all[rxn_rule_id][tmpl_rxn_id]
-    else: # Get reaction rules built from all template reactions
-        for rxn_id, rxn_rule in rxn_rules_all[rxn_rule_id].items():
-            rxn_rules[rxn_id] = rxn_rule
-    return rxn_rules
 
 
 def load_tmpl_rxn(
@@ -253,10 +251,11 @@ def load_tmpl_rxn(
         left = dict(rxn['left'])
         rxn['left']  = rxn['right']
         rxn['right'] = left
+    logger.debug('TEMPLATE REACTION:'+str(dumps(rxn, indent=4)))
     return rxn
 
 
-def add_compounds(
+def detect_missing_compounds(
     tmpl_rxn: Dict,
     rxn_rule: Dict,
     cid_strc: Dict,
@@ -291,7 +290,7 @@ def add_compounds(
     }
     compounds_nostruct = []
 
-    for side in ['left', 'right']:
+    for side in SIDES:
         # Get the difference between the template reaction and the reaction rule,
         # difference in compounds and in stoichio coeff
         diff_cmpds = dict(
