@@ -45,11 +45,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Transformation to complete with flatten compounds ids (e.g. MNXM181 + MNXM4 = MNXM1 + MNXM1 + MNXM1144) or in SMILES string (e.g. [H]OC(=O)C([H])=C([H])C([H])=C([H])C(=O)O[H]>>[H]Oc1c([H])c([H])c([H])c([H])c1O[H].O=O.O=O)'
     )
     parser.add_argument(
-        '--ori_rxn_id',
-        type=str,
-        help='Original (template) reaction identifier'
-    )
-    parser.add_argument(
         '--version', '-v',
         action='version',
         version='%(prog)s {}'.format(__version__),

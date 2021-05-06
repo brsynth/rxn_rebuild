@@ -18,7 +18,6 @@ def rebuild_rxn(
     cache: 'rrCache',
     rxn_rule_id: str,
     transfo: str,
-    tmpl_rxn_id: str = None,
     logger: Logger=getLogger(__name__)
 ) -> str:
 
@@ -29,17 +28,10 @@ def rebuild_rxn(
     ## LOAD CACHE
     load_cache(cache)
 
-    ## REACTION RULES
-    rxn_rules = load_rxn_rules(
-        cache.get('rr_reactions'),
-        rxn_rule_id,
-        tmpl_rxn_id
-    )
-
     # One completed transformation per template reaction
     completed_transfos = {}
 
-    for tmpl_rxn_id, rxn_rule in rxn_rules.items():
+    for tmpl_rxn_id, rxn_rule in cache.get('rr_reactions')[rxn_rule_id].items():
         logger.debug('REACTION RULE:'+str(dumps(rxn_rule, indent=4)))
 
         ## CHECK
@@ -55,7 +47,7 @@ def rebuild_rxn(
         )
 
         ## TEMPLATE REACTION
-        tmpl_rxn = load_tmpl_rxn(
+        tmpl_rxn = build_tmpl_rxn(
             cache.get('rr_full_reactions'),
             tmpl_rxn_id,
             rxn_rule['rel_direction']
@@ -188,44 +180,7 @@ def build_trans_input(
     return trans_input
 
 
-def load_rxn_rules(
-    rxn_rules_all: Dict,
-    rxn_rule_id: str,
-    tmpl_rxn_id: str,
-    logger: Logger=getLogger(__file__)
-) -> Tuple[str, Dict]:
-    """
-    Seeks for the reaction rule of ID rxn_rule_id in the cache.
-
-    Parameters
-    ----------
-    rxn_rules_all: Dict
-        Reaction rules.
-    rxn_rule_id: str
-        ID of reaction rule.
-    tmpl_rxn_id: str
-        ID of template reaction.
-    logger : Logger
-        The logger object.
-
-    Returns
-    -------
-    rxn_id: str
-        ID of the template reaction.
-    rxn_rule: Dict
-        Reaction Rule looked for.
-    """
-    rxn_rules = {}
-    # Get the reaction rule built from the template reaction of ID 'tmpl_rxn_id'
-    if tmpl_rxn_id is not None:
-        rxn_rules[tmpl_rxn_id] = rxn_rules_all[rxn_rule_id][tmpl_rxn_id]
-    else: # Get reaction rules built from all template reactions
-        for rxn_id, rxn_rule in rxn_rules_all[rxn_rule_id].items():
-            rxn_rules[rxn_id] = rxn_rule
-    return rxn_rules
-
-
-def load_tmpl_rxn(
+def build_tmpl_rxn(
     tmplt_rxns: Dict,
     rxn_id: str,
     rr_direction: int,
