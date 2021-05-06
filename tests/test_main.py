@@ -18,17 +18,17 @@ class Test(TestCase):
     logger = create_logger(__name__, 'DEBUG')
     cache = rrCache(
         db='file',
-        attrs=None
+        attrs=['rr_reactions', 'rr_full_reactions','cid_strc']
     )
 
     def test_all_cmpds_ok(self):
         rule_id = 'RR-02-0250d458c4991a7d-02-F'
         transfo = '[H][O][C](=[O])[C](=[O])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([H])[O][H]>>[H]OC(=O)C(=O)C([H])(O[H])C([H])(O[H])C([H])([H])C([H])=O.[H]O[H].[H]O[H]'
         completed_transfos = rebuild_rxn(
-              cache = self.cache,
-        rxn_rule_id = rule_id,
-            transfo = transfo,
-             logger = self.logger
+                  cache = self.cache,
+            rxn_rule_id = rule_id,
+                transfo = transfo,
+                 logger = self.logger
         )
         self.assertEqual(
             completed_transfos,
@@ -49,10 +49,10 @@ class Test(TestCase):
         rule_id = 'RR-02-5594c358cc56f547-02-F'
         transfo = '[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]>>[H+].[H][N]=[C]([O][H])[C]1=[C]([H])[N]([C]2([H])[O][C]([H])([C]([H])([H])[O][P](=[O])([O][H])[O][P](=[O])([O][H])[O][C]([H])([H])[C]3([H])[O][C]([H])([n]4[c]([H])[n][c]5[c]([N]([H])[H])[n][c]([H])[n][c]54)[C]([H])([O][H])[C]3([H])[O][H])[C]([H])([O][H])[C]2([H])[O][H])[C]([H])=[C]([H])[C]1([H])[H].[H][O][C]([H])([H])[C]([H])([H])[C]([H])=[O]'
         completed_transfos = rebuild_rxn(
-              cache = self.cache,
-        rxn_rule_id = rule_id,
-            transfo = transfo,
-             logger = self.logger
+                  cache = self.cache,
+            rxn_rule_id = rule_id,
+                transfo = transfo,
+                 logger = self.logger
         )
         self.assertEqual(
             completed_transfos,
@@ -172,3 +172,27 @@ class Test(TestCase):
                 }
             }
         )
+
+    def test_all_cmpds_ok_wocache(self):
+        rule_id = 'RR-02-0250d458c4991a7d-02-F'
+        transfo = '[H][O][C](=[O])[C](=[O])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([H])[O][H]>>[H]OC(=O)C(=O)C([H])(O[H])C([H])(O[H])C([H])([H])C([H])=O.[H]O[H].[H]O[H]'
+        completed_transfos = rebuild_rxn(
+            rxn_rule_id = rule_id,
+                transfo = transfo,
+                 logger = self.logger
+        )
+        self.assertEqual(
+            completed_transfos,
+            {
+                "MNXR94682": {
+                    "added_cmpds": {
+                        "left": {},
+                        "right": {},
+                        "left_nostruct": {},
+                        "right_nostruct": {}
+                    },
+                    "full_transfo": "[H][O][C](=[O])[C](=[O])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([H])[O][H]>>[H]OC(=O)C(=O)C([H])(O[H])C([H])(O[H])C([H])([H])C([H])=O.[H]O[H].[H]O[H]"
+                }
+            }
+        )
+
