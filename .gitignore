@@ -1,5 +1,6 @@
 # Specific
 _exclude_*
+log*
 
 # Generic
 __pycache__
