@@ -62,12 +62,13 @@ parser = build_args_parser()
 args   = parser.parse_args()
 
 completed_transfos = rebuild_rxn(
-    cache = rrCache(db='file', attrs=None),
+    cache = rrCache(db='file', attrs=['rr_reactions', 'rr_full_reactions','cid_strc']),
     rxn_rule_id = args.rxn_rule_id,
     transfo = args.trans_smi,
     tmpl_rxn_id = args.ori_rxn_id
 )
 ```
+If `cache` is not provided, it ill be automatically loaded within `rebuild_rxn` function but it could be much slower if called inside a loop.
 
 ## Tests
 Test can be run with the following commands:
