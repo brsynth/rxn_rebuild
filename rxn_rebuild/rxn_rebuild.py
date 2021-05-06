@@ -18,10 +18,10 @@ SIDES = ['left', 'right']
 
 
 def rebuild_rxn(
-    cache: 'rrCache',
     rxn_rule_id: str,
     transfo: str,
     tmpl_rxn_id: str = None,
+    cache: 'rrCache'=None,
     logger: Logger=getLogger(__name__)
 ) -> str:
 
@@ -29,7 +29,12 @@ def rebuild_rxn(
     trans_input = build_trans_input(transfo.replace(' ', '')) # remove whitespaces
 
     ## LOAD CACHE
-    load_cache(cache)
+    if cache is None:
+        cache = rrCache(
+            db='file',
+            attrs=['rr_reactions', 'rr_full_reactions','cid_strc']
+            # logger=logger
+        )
 
     ## COMPLETE TRANSFORMATION
     completed_transfos = {}
@@ -163,15 +168,6 @@ def build_final_transfo(
             compl_transfo[side] += [cmpd_infos['cid']]*cmpd_infos['stoichio']
     logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
     return compl_transfo
-
-
-def load_cache(
-    cache: 'rrCache',
-    logger: Logger=getLogger(__file__)
-) -> Dict:
-    cache.load(['rr_reactions'])
-    cache.load(['rr_full_reactions'])
-    cache.load(['cid_strc'])
 
 
 def build_trans_input(
