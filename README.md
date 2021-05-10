@@ -62,7 +62,7 @@ parser = build_args_parser()
 args   = parser.parse_args()
 
 completed_transfos = rebuild_rxn(
-    cache = rrCache(db='file', attrs=['rr_reactions', 'rr_full_reactions','cid_strc']),
+    cache = rrCache(db='file', attrs=['rr_reactions', 'template_reactions','cid_strc']),
     rxn_rule_id = args.rxn_rule_id,
     transfo = args.trans_smi,
     tmpl_rxn_id = args.ori_rxn_id
