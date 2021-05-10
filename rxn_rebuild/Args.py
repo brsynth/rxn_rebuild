@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from rxn_rebuild._version import __version__
-from typing import(
+from typing import (
     Callable,
 )
 from brs_utils import add_logger_args

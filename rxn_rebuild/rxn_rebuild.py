@@ -1,7 +1,6 @@
 from logging import (
     Logger,
     getLogger,
-    StreamHandler
 )
 from typing import (
     List,
@@ -21,18 +20,18 @@ def rebuild_rxn(
     rxn_rule_id: str,
     transfo: str,
     tmpl_rxn_id: str = None,
-    cache: 'rrCache'=None,
-    logger: Logger=getLogger(__name__)
+    cache: 'rrCache' = None,
+    logger: Logger = getLogger(__name__)
 ) -> str:
 
     ## INPUT TRANSFORMATION
-    trans_input = build_trans_input(transfo.replace(' ', '')) # remove whitespaces
+    trans_input = build_trans_input(transfo.replace(' ', ''))  # remove whitespaces
 
     ## LOAD CACHE
     if cache is None:
         cache = rrCache(
             db='file',
-            attrs=['rr_reactions', 'template_reactions','cid_strc']
+            attrs=['rr_reactions', 'template_reactions', 'cid_strc']
             # logger=logger
         )
 
@@ -46,7 +45,7 @@ def rebuild_rxn(
             cache,
             logger=logger
         )
-    else: # One completed transformation per template reaction
+    else:  # One completed transformation per template reaction
         for tpl_rxn_id, rxn_rule in cache.get('rr_reactions')[rxn_rule_id].items():
             completed_transfos[tpl_rxn_id] = complete_transfo(
                 trans_input,
@@ -64,7 +63,7 @@ def complete_transfo(
     rxn_rule: Dict,
     tmpl_rxn_id: str,
     cache: 'rrCache',
-    logger: Logger=getLogger(__name__)
+    logger: Logger = getLogger(__name__)
 ) -> Dict:
 
     completed_transfo = {}
@@ -133,13 +132,14 @@ def complete_transfo(
 
     return completed_transfo
 
+
 def check_compounds_number(
     rxn_name_1: str,
     rxn_1: Dict,
     rxn_name_2: str,
     rxn_2: Dict,
     side: str,
-    logger: Logger=getLogger(__name__)
+    logger: Logger = getLogger(__name__)
 ) -> None:
     # Check if the number of structures in the part of SMILES of rxn_1
     # is equal to the number of products of rxn_2.
@@ -154,7 +154,7 @@ def check_compounds_number(
 def build_final_transfo(
     trans_input: Dict,
     added_cmpds: Dict,
-    logger: Logger=getLogger(__name__)
+    logger: Logger = getLogger(__name__)
 ) -> Dict:
     compl_transfo = {}
     # Add compound to add to input transformation
@@ -172,7 +172,7 @@ def build_final_transfo(
 
 def build_trans_input(
     transfo: str,
-    logger: Logger=getLogger(__file__)
+    logger: Logger = getLogger(__file__)
 ) -> Dict:
     """
     Build transformation to complete.
@@ -197,11 +197,11 @@ def build_trans_input(
         'sep_cmpd': ''
     }
     # Detect input format
-    if '>>' in transfo: # SMILES
+    if '>>' in transfo:  # SMILES
         trans_input['format'] = 'smiles'
         trans_input['sep_side'] = '>>'
         trans_input['sep_cmpd'] = '.'
-    elif '=' in transfo: # CMPD IDs
+    elif '=' in transfo:  # CMPD IDs
         trans_input['format'] = 'cid'
         trans_input['sep_side'] = '='
         trans_input['sep_cmpd'] = '+'
@@ -218,7 +218,7 @@ def load_tmpl_rxn(
     tmplt_rxns: Dict,
     rxn_id: str,
     rr_direction: int,
-    logger: Logger=getLogger(__file__)
+    logger: Logger = getLogger(__file__)
 ) -> Dict:
     """
     Seeks for the template reaction of ID rxn_id in the cache.
@@ -240,10 +240,7 @@ def load_tmpl_rxn(
         template reaction looked for.
     """
     rxn = tmplt_rxns[rxn_id]
-    if rr_direction == 1:
-        rxn_left  = rxn['left']
-        rxn_right = rxn['right']
-    else:
+    if rr_direction == -1:
         left = dict(rxn['left'])
         rxn['left']  = rxn['right']
         rxn['right'] = left
@@ -255,7 +252,7 @@ def detect_missing_compounds(
     tmpl_rxn: Dict,
     rxn_rule: Dict,
     cid_strc: Dict,
-    logger: Logger=getLogger(__file__)
+    logger: Logger = getLogger(__file__)
 ) -> Tuple[Dict, List]:
     """
     Find compounds to be added from template reaction and reaction rule.
@@ -284,7 +281,6 @@ def detect_missing_compounds(
         'left_nostruct': {},
         'right_nostruct': {}
     }
-    compounds_nostruct = []
 
     for side in SIDES:
         # Get the difference between the template reaction and the reaction rule,

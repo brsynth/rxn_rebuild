@@ -18,7 +18,7 @@ class Test(TestCase):
     logger = create_logger(__name__, 'DEBUG')
     cache = rrCache(
         db='file',
-        attrs=['rr_reactions', 'rr_full_reactions','cid_strc']
+        attrs=['rr_reactions', 'template_reactions', 'cid_strc']
     )
 
     def test_all_cmpds_ok(self):
@@ -195,4 +195,3 @@ class Test(TestCase):
                 }
             }
         )
-

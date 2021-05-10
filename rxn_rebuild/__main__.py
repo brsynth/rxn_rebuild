@@ -1,10 +1,7 @@
 from rxn_rebuild.rxn_rebuild import (
     rebuild_rxn,
 )
-from rxn_rebuild.Args import (
-    add_arguments,
-    build_args_parser
-)
+from rxn_rebuild.Args import build_args_parser
 from rr_cache import rrCache
 from argparse import (
     ArgumentParser,
@@ -39,7 +36,6 @@ def init(
 
     logger.info(
         '{color}{typo}rxn_rebuild {version}{rst}\n'.format(
-            prog = logger.name,
             version = __version__,
             color=c_fg('white'),
             typo=c_attr('bold'),
@@ -75,7 +71,7 @@ def entry_point():
 
     cache = rrCache(
         db='file',
-        attrs=['rr_reactions', 'template_reactions','cid_strc']
+        attrs=['rr_reactions', 'template_reactions', 'cid_strc']
         # logger=logger
     )
 
@@ -84,7 +80,6 @@ def entry_point():
         msg_rr += '\n{color}{typo}   |- template reaction:{rst} {tmpl_rxn_id}'
     logger.info(
         msg_rr.format(
-            prog = logger.name,
             rr_id = args.rxn_rule_id,
             tmpl_rxn_id = args.tmpl_rxn_id,
             color=c_fg('white'),
@@ -94,7 +89,6 @@ def entry_point():
     )
     logger.info(
         '{color}{typo}Transformation\n   |- to complete:{rst} {value}'.format(
-            prog = logger.name,
             value = args.transfo,
             color=c_fg('white'),
             typo=c_attr('bold'),
@@ -130,7 +124,6 @@ def entry_point():
             )
             logger.info(
                 '{typo}{color}         Unknown structure for some compounds{rst}'.format(
-                    rxn_id=tmpl_rxn_id,
                     typo=c_attr('bold'),
                     color=c_fg('white'),
                     rst=c_attr('reset')
@@ -145,6 +138,7 @@ def entry_point():
                         rst=c_attr('reset')
                     )
                 )
+
 
 if __name__ == '__main__':
     entry_point()
