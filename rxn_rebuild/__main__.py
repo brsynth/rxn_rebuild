@@ -75,7 +75,7 @@ def entry_point():
 
     cache = rrCache(
         db='file',
-        attrs=['rr_reactions', 'rr_full_reactions','cid_strc']
+        attrs=['rr_reactions', 'template_reactions','cid_strc']
         # logger=logger
     )
 

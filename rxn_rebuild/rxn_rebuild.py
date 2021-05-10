@@ -32,7 +32,7 @@ def rebuild_rxn(
     if cache is None:
         cache = rrCache(
             db='file',
-            attrs=['rr_reactions', 'rr_full_reactions','cid_strc']
+            attrs=['rr_reactions', 'template_reactions','cid_strc']
             # logger=logger
         )
 
@@ -86,7 +86,7 @@ def complete_transfo(
 
     ## TEMPLATE REACTION
     tmpl_rxn = load_tmpl_rxn(
-        cache.get('rr_full_reactions'),
+        cache.get('template_reactions'),
         tmpl_rxn_id,
         rxn_rule['rel_direction'],
         logger=logger
@@ -114,7 +114,7 @@ def complete_transfo(
         check_compounds_number(
             'COMPLETED TRANSFORMATION',
             compl_transfo,
-            'TEMPLATE REACTION',
+            'TEMPLATE REACTION ({tmpl_rxn_id})'.format(tmpl_rxn_id=tmpl_rxn_id),
             tmpl_rxn,
             side,
             logger=logger
