@@ -103,7 +103,7 @@ def complete_transfo(
 
     ## TEMPLATE REACTION
     if rxn_rule['rel_direction'] == -1:
-        tmpl_rxn = swap_sides(tmpl_rxn, logger=logger)
+        tmpl_rxn['left'], tmpl_rxn['right'] = tmpl_rxn['right'], tmpl_rxn['left']
 
     ## ADD MISSING COMPOUNDS TO THE FINAL TRANSFORMATION
     missing_compounds = detect_missing_compounds(
@@ -226,31 +226,6 @@ def build_trans_input(
             trans_input[side] += [cmpd]
     logger.debug('INPUT TRANSFORMATION: '+str(dumps(trans_input, indent=4)))
     return trans_input
-
-
-def swap_sides(
-    rxn: Dict,
-    logger: Logger = getLogger(__file__)
-) -> Dict:
-    """
-    Swaps left and right sides.
-
-    Parameters
-    ----------
-    rxn: Dict
-        The reactions to swap sides of.
-    logger : Logger
-        The logger object.
-
-    Returns
-    -------
-    rxn: Dict
-        The reaction with swapped sides.
-    """
-    return {
-        'left': rxn['right'],
-        'right': rxn['left']
-    }
 
 
 def detect_missing_compounds(
