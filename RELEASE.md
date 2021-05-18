@@ -1,5 +1,9 @@
 # Release history
 
+## 2.0.0
+### 18 May, 2021
+- feat: add --direction option to specify the direction of the transformation to complete
+
 ## 1.2.0
 ### 10 May, 2021
 - fit to new release of rr_cache

@@ -195,3 +195,37 @@ class Test(TestCase):
                 }
             }
         )
+
+    def test_forward_direction(self):
+        rule_id = 'RR-02-a0cc0be463ff412f-16-F'
+        transfo = '[H]Oc1c([H])c([H])c([H])c([H])c1O[H].O=O>>[H]OC(=O)C([H])=C([H])C([H])=C([H])C(=O)O[H]'
+        direction = 'forward'
+        self.assertEqual(
+            rebuild_rxn(
+                rxn_rule_id = rule_id,
+                transfo = transfo,
+                direction = direction,
+                logger = self.logger
+            ),
+            {
+                "MNXR96458": {
+                    "full_transfo": "[H]Oc1c([H])c([H])c([H])c([H])c1O[H].O=O>>[H]OC(=O)C([H])=C([H])C([H])=C([H])C(=O)O[H].[H+].[H+]",
+                    "added_cmpds": {
+                        "left": {},
+                        "right": {
+                            "MNXM1": {
+                                "stoichio": 2,
+                                "formula": "H",
+                                "smiles": "[H+]",
+                                "inchi": "InChI=1S/p+1",
+                                "inchikey": "GPRLSGONYQIRFK-UHFFFAOYSA-N",
+                                "cid": "MNXM1",
+                                "name": "H(+)"
+                            }
+                        },
+                        "left_nostruct": {},
+                        "right_nostruct": {}
+                    }
+                }
+            }
+        )

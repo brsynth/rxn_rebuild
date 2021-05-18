@@ -50,6 +50,16 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Template (original) reaction identifier'
     )
     parser.add_argument(
+        '--direction',
+        type=str,
+        default='reverse',
+        choices=[
+            'forward', 'fwd',
+            'reverse', 'rev'
+        ],
+        help='Direction of the transformation to complete (default: reverse)'
+    )
+    parser.add_argument(
         '--version', '-v',
         action='version',
         version='%(prog)s {}'.format(__version__),

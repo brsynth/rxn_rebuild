@@ -19,6 +19,7 @@ SIDES = ['left', 'right']
 def rebuild_rxn(
     rxn_rule_id: str,
     transfo: str,
+    direction: str = 'reverse',
     tmpl_rxn_id: str = None,
     cache: 'rrCache' = None,
     logger: Logger = getLogger(__name__)
@@ -26,6 +27,10 @@ def rebuild_rxn(
 
     ## INPUT TRANSFORMATION
     trans_input = build_trans_input(transfo.replace(' ', ''))  # remove whitespaces
+    # # If input transfo is provided in forward direction,
+    # # swap left and right sides
+    # if direction == 'forward' or direction == 'fwd':
+    #     trans_input['left'], trans_input['right'] = trans_input['right'], trans_input['left']
 
     ## LOAD CACHE
     if cache is None:
@@ -37,21 +42,25 @@ def rebuild_rxn(
 
     ## COMPLETE TRANSFORMATION
     completed_transfos = {}
-    if tmpl_rxn_id is not None:
+    if not tmpl_rxn_id is None:
         completed_transfos[tmpl_rxn_id] = complete_transfo(
-            trans_input,
-            cache.get('rr_reactions')[rxn_rule_id][tmpl_rxn_id],
-            tmpl_rxn_id,
-            cache,
+            trans_input=trans_input,
+            direction=direction,
+            rxn_rule=cache.get('rr_reactions')[rxn_rule_id][tmpl_rxn_id],
+            tmpl_rxn=cache.get('template_reactions')[tmpl_rxn_id],
+            tmpl_rxn_id=tmpl_rxn_id,
+            compounds=cache.get('cid_strc'),
             logger=logger
         )
     else:  # One completed transformation per template reaction
         for tpl_rxn_id, rxn_rule in cache.get('rr_reactions')[rxn_rule_id].items():
             completed_transfos[tpl_rxn_id] = complete_transfo(
-                trans_input,
-                rxn_rule,
-                tpl_rxn_id,
-                cache,
+                trans_input=trans_input,
+                direction=direction,
+                rxn_rule=rxn_rule,
+                tmpl_rxn=cache.get('template_reactions')[tpl_rxn_id],
+                tmpl_rxn_id=tpl_rxn_id,
+                compounds=cache.get('cid_strc'),
                 logger=logger
             )
 
@@ -61,14 +70,23 @@ def rebuild_rxn(
 def complete_transfo(
     trans_input: Dict,
     rxn_rule: Dict,
+    tmpl_rxn: Dict,
     tmpl_rxn_id: str,
-    cache: 'rrCache',
+    compounds: Dict,
+    direction: str = 'reverse',
     logger: Logger = getLogger(__name__)
 ) -> Dict:
 
     completed_transfo = {}
 
     logger.debug('REACTION RULE:'+str(dumps(rxn_rule, indent=4)))
+
+    # If input transfo is provided in forward direction,
+    # swap left and right sides of reaction rule, and
+    # change 'rel_direction'
+    if direction == 'forward' or direction == 'fwd':
+        rxn_rule['left'], rxn_rule['right'] = rxn_rule['right'], rxn_rule['left']
+        rxn_rule['rel_direction'] *= -1
 
     ## CHECK 1/2
     # Check if the number of structures in the right part of SMILES of transformation to complete
@@ -84,18 +102,14 @@ def complete_transfo(
     )
 
     ## TEMPLATE REACTION
-    tmpl_rxn = load_tmpl_rxn(
-        cache.get('template_reactions'),
-        tmpl_rxn_id,
-        rxn_rule['rel_direction'],
-        logger=logger
-    )
+    if rxn_rule['rel_direction'] == -1:
+        tmpl_rxn = swap_sides(tmpl_rxn, logger=logger)
 
     ## ADD MISSING COMPOUNDS TO THE FINAL TRANSFORMATION
     missing_compounds = detect_missing_compounds(
         tmpl_rxn,
         rxn_rule,
-        cache.get('cid_strc'),
+        compounds,
         logger=logger
     )
 
@@ -214,38 +228,29 @@ def build_trans_input(
     return trans_input
 
 
-def load_tmpl_rxn(
-    tmplt_rxns: Dict,
-    rxn_id: str,
-    rr_direction: int,
+def swap_sides(
+    rxn: Dict,
     logger: Logger = getLogger(__file__)
 ) -> Dict:
     """
-    Seeks for the template reaction of ID rxn_id in the cache.
+    Swaps left and right sides.
 
     Parameters
     ----------
-    tmplt_rxns: Dict
-        Template (original) reactions.
-    rxn_id: str
-        ID of the template reaction.
-    rr_direction: int
-        Direction of the reaction used to build the rule.
+    rxn: Dict
+        The reactions to swap sides of.
     logger : Logger
         The logger object.
 
     Returns
     -------
-    tmpl_rxn: Dict
-        template reaction looked for.
+    rxn: Dict
+        The reaction with swapped sides.
     """
-    rxn = tmplt_rxns[rxn_id]
-    if rr_direction == -1:
-        left = dict(rxn['left'])
-        rxn['left']  = rxn['right']
-        rxn['right'] = left
-    logger.debug('TEMPLATE REACTION:'+str(dumps(rxn, indent=4)))
-    return rxn
+    return {
+        'left': rxn['right'],
+        'right': rxn['left']
+    }
 
 
 def detect_missing_compounds(
