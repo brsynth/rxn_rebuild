@@ -17,7 +17,6 @@ class Test(TestCase):
     # Set attributes
     logger = create_logger(__name__, 'DEBUG')
     cache = rrCache(
-        db='file',
         attrs=['rr_reactions', 'template_reactions', 'cid_strc']
     )
 

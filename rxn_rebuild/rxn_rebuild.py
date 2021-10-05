@@ -8,7 +8,6 @@ from typing import (
     Tuple
 )
 from rr_cache import rrCache
-from brs_utils import diff
 from collections import Counter
 from json import dumps
 
@@ -35,7 +34,6 @@ def rebuild_rxn(
     ## LOAD CACHE
     if cache is None:
         cache = rrCache(
-            db='file',
             attrs=['rr_reactions', 'template_reactions', 'cid_strc']
             # logger=logger
         )
