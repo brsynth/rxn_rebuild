@@ -1,0 +1,7 @@
+name: rxn_rebuild-dev
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - brs_utils
+  - rr_cache
