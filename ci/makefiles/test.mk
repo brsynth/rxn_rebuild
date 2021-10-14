@@ -1,5 +1,4 @@
-include ../../extras/.env
-include ../.env
+include ../.ci_env
 
 SHELL := /bin/bash
 
@@ -13,9 +12,28 @@ help:
 
 .DEFAULT_GOAL := all
 
-MAKE_CMD = $(MAKE) -s --no-print-directory
+MAKE_CMD = $(MAKE) -f test.mk -s --no-print-directory
 ECHO = echo ">>>"
 
+PACKAGE = $(shell python ../../setup.py --name)
+
+ifeq ($(args),)
+	test_src := tests
+else
+	test_src = $(args)
+endif
+test_cmd := python -m pytest -v --cov --cov-report term-missing
+define test_deps
+    - pytest
+    - pytest-cov
+    - pytest-mock
+endef
+export test_deps
+
+test-cmd:
+	@echo $(test_cmd)
+test-deps:
+	@echo "$$test_deps"
 
 all: check test ## Run check and test code
 
@@ -26,22 +44,16 @@ bandit: ## Run bandit over code
 	# -lll to only catch the higher level security issues
 	@bandit -r -lll ../../${PACKAGE}
 flake: ## Run flake over code and tests
-	@echo "=== FLAKE REPORT ==="
+	echo "=== FLAKE REPORT ==="
 	# stop the build if there are Python syntax errors or undefined names
-	@flake8 ../../${PACKAGE} --count --select=E9,F63,F7,F82 --show-source --statistics
+	flake8 ../../${PACKAGE} --count --select=E9,F63,F7,F82 --show-source --statistics
 	# exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-	@flake8 ../../${PACKAGE} --count --ignore=E272,E501,E266,E241,E226,E251,E303,E221 --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+	flake8 ../../${PACKAGE} --count --ignore=E272,E501,E266,E241,E226,E251,E303,E221 --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 	# exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
-	@flake8 ../../tests --count --ignore=E272,E501,E266,E241,E226,E251,E303,E221,E122,E211,E302 --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+	flake8 ../../$(test_src) --count --ignore=E272,E501,E266,E241,E226,E251,E303,E221,E122,E211,E302 --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
 
 # TEST
-$(eval test_cmd := $(shell python3 ../test/parse_recipe.py test cmd))
-ifeq ($(args),)
-	test_src = $(shell python3 ../test/parse_recipe.py test src)
-else
-	test_src = $(args)
-endif
-
 test: ## Test code with 'pytest'
 	@export PYTHONPATH=$$PWD/../.. ; \
 	cd ../.. ; \

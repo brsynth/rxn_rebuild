@@ -6,19 +6,11 @@ name: Test
 on:
 
   push:
-    branches: [ master, dev ]
-    paths-ignore:
-      - '**/RELEASE*'
-      - '**/README*'
-      - '**/LICENSE*'
-      - 'recipe'
-      - 'docs'
-      - '.gitignore'
-      - '.github'
-      - '!.github/workflows/test*'
-      - '**/_version.py'
+    branches: [ main, master, dev ]
+    paths:
+      - '**.py'
   pull_request:
-    branches: [ master ]
+    branches: [ main, master ]
 
 jobs:
 
@@ -39,4 +31,5 @@ jobs:
     - name: Testing package
       run: |
         cd ci
-        make test-inconda
+        make test-buildenv env=test
+        conda run -n test make test

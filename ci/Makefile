@@ -1,8 +1,9 @@
 SHELL := /bin/bash
 SELF_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
+PACKAGE = $(shell python ../setup.py --name)
 
-include $(SELF_DIR)/.env
-include $(SELF_DIR)/../extras/.env
+include $(SELF_DIR)/.ci_env
+
 
 # HELP
 # This will output the help for each task
@@ -34,14 +35,20 @@ check: ## Test code with 'pytest', this is the fastest way to test the code
 test: ## Test code with 'pytest', this is the fastest way to test the code
 	   @$(MAKE_CMD) -f test.mk test args="$(args)"
 
-%-inconda: ## Test conda package
+%-buildenv: ## Test conda package
 ifneq ($(strip $(env)),)
 	$(eval env=${PACKAGE}_$*)
 endif
-	@$(MAKE_CMD) -f conda.mk check-environment-$* env=$(env)
-	@$(MAKE_CMD) -f conda.mk conda-run-env env=$(env) \
-										   cmd="make -C .. $*" \
-										   args="$(args)"
+	@$(MAKE_CMD) -f conda.mk build-environment-$* env=$(env)
+
+# %-inconda: ## Test conda package
+# ifneq ($(strip $(env)),)
+# 	$(eval env=${PACKAGE}_$*)
+# endif
+# 	@$(MAKE_CMD) -f conda.mk check-environment-$* env=$(env)
+# 	@$(MAKE_CMD) -f conda.mk conda-run-env env=$(env) \
+# 										   cmd="make -C .. $*" \
+# 										   args="$(args)"
 
 
 conda-all: conda-build conda-test conda-convert conda-publish ## (default) Perform all conda process (build, test, convert, publish)
@@ -67,9 +74,3 @@ conda-create-run_env: ## Make an conda environment to run program
 
 doc-pdoc:
 	cd .. ; rm -rf chemlite/__pycache__ ; pdoc --force --html -o docs chemlite
-
-doc-sphinx:
-	cd .. ; sphinx-apidoc -f -o docs/source chemlite
-	
-doc-sphinx-html:
-	cd ../docs ; make html

@@ -1,4 +1,14 @@
 # rxn_rebuild
+Rebuild full reaction from reaction rule
+| Name | Downloads | Version | Platforms |
+| --- | --- | --- | --- |
+| [![Conda Recipe](https://img.shields.io/badge/recipe-rxn_rebuild-green.svg)](https://anaconda.org/conda-forge/rxn_rebuild) | [![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/rxn_rebuild.svg)](https://anaconda.org/conda-forge/rxn_rebuild) | [![Conda Version](https://img.shields.io/conda/vn/conda-forge/rxn_rebuild.svg)](https://anaconda.org/conda-forge/rxn_rebuild) | [![Conda Platforms](https://img.shields.io/conda/pn/conda-forge/rxn_rebuild.svg)](https://anaconda.org/conda-forge/rxn_rebuild) |
+
+## Description
+*rxn_rebuild* provides a cache for RetroRules and MetaNetX compounds and reactions
+
+
+# rxn_rebuild
 
 [![Anaconda-Server Badge](https://anaconda.org/brsynth/rxn_rebuild/badges/latest_release_date.svg)](https://anaconda.org/brsynth/rxn_rebuild) [![Anaconda-Server Badge](https://anaconda.org/brsynth/rxn_rebuild/badges/version.svg)](https://anaconda.org/brsynth/rxn_rebuild)
 
@@ -22,28 +32,12 @@ Rebuild full reaction from a reaction rule ID and a chemical transformation by a
     - values: infos (SMILES, InChI, InChIKey, formula, name)
 
 
-## Prerequisites
-
-* Python 3
-
 ## Install
-
-### Prerequisite
 
 The conda package manager is required. Fresh instructions on how to install conda are [available online](https://docs.conda.io/projects/conda/en/latest/user-guide/install/).
 
-### conda environment
-
-In case a new conda environment `<my_env>` need to be set up, first start with:
 ```shell
-conda create -n my_env python=3
-```
-
-### conda package
-
-Install in the `<my_env>` conda environment:
-```shell
-conda install -c brsynth -c conda-forge -n <my_env> rxn_rebuild 
+conda install -c conda-forge rxn_rebuild 
 ```
 
 ## Run
@@ -55,17 +49,15 @@ python -m rxn_rebuild <rxn_rule_id> <transfo> [<ori_rxn_id>]
 ```
 **From Python code**
 ```python
-from rr_cache import rrCache
 from rxn_rebuild import rebuild_rxn, build_args_parser
 
 parser = build_args_parser()
 args   = parser.parse_args()
 
 completed_transfos = rebuild_rxn(
-    cache = rrCache(attrs=['rr_reactions', 'template_reactions','cid_strc']),
-    rxn_rule_id = args.rxn_rule_id,
-    transfo = args.trans_smi,
-    tmpl_rxn_id = args.ori_rxn_id
+    rxn_rule_id=args.rxn_rule_id,
+    transfo=args.trans_smi,
+    tmpl_rxn_id=args.ori_rxn_id
 )
 ```
 If `cache` is not provided, it ill be automatically loaded within `rebuild_rxn` function but it could be much slower if called inside a loop.

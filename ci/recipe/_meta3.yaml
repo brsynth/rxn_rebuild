@@ -1,0 +1,2 @@
+  commands:
+    - python -m {{ name|lower }} --help

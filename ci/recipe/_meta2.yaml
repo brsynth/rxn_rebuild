@@ -1,0 +1,7 @@
+
+test:
+  source_files:
+    - tests
+  imports:
+    - {{ name|lower }}
+  requires:
