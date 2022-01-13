@@ -1,4 +1,4 @@
-name: rxn_rebuild-dev
+name: rxn_rebuild
 channels:
   - conda-forge
 dependencies:
