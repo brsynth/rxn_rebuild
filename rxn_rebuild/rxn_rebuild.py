@@ -7,9 +7,10 @@ from typing import (
     Dict,
     Tuple
 )
-from rr_cache import rrCache
 from collections import Counter
 from json import dumps
+from copy import deepcopy
+from rr_cache import rrCache
 
 
 SIDES = ['left', 'right']
@@ -83,8 +84,13 @@ def complete_transfo(
     # swap left and right sides of reaction rule, and
     # change 'rel_direction'
     if direction == 'forward' or direction == 'fwd':
-        rxn_rule['left'], rxn_rule['right'] = rxn_rule['right'], rxn_rule['left']
-        rxn_rule['rel_direction'] *= -1
+        _rxn_rule = {
+            'left': rxn_rule['right'],
+            'right': rxn_rule['left'],
+            'rel_direction': -rxn_rule['rel_direction']
+        }
+    else:  # reverse
+        _rxn_rule = deepcopy(rxn_rule)
 
     ## CHECK 1/2
     # Check if the number of structures in the right part of SMILES of transformation to complete
@@ -94,27 +100,32 @@ def complete_transfo(
         'INPUT TRANSFORMATION',
         trans_input,
         'REACTION RULE',
-        rxn_rule,
+        _rxn_rule,
         'right',
         logger=logger
     )
 
     ## TEMPLATE REACTION
-    if rxn_rule['rel_direction'] == -1:
-        tmpl_rxn['left'], tmpl_rxn['right'] = tmpl_rxn['right'], tmpl_rxn['left']
+    if _rxn_rule['rel_direction'] == -1:
+        _tmpl_rxn = {
+            'left': tmpl_rxn['right'],
+            'right': tmpl_rxn['left'],
+        }
+    else:
+        _tmpl_rxn = deepcopy(tmpl_rxn)
 
     ## ADD MISSING COMPOUNDS TO THE FINAL TRANSFORMATION
     missing_compounds = detect_missing_compounds(
-        tmpl_rxn,
-        rxn_rule,
+        _tmpl_rxn,
+        _rxn_rule,
         compounds,
         logger=logger
     )
 
     ## BUILD FINAL TRANSFORMATION
     compl_transfo = build_final_transfo(
-        trans_input,
-        missing_compounds,
+        trans_input=trans_input,
+        missing_compounds=missing_compounds,
         logger=logger
     )
 
@@ -126,7 +137,7 @@ def complete_transfo(
             'COMPLETED TRANSFORMATION',
             compl_transfo,
             'TEMPLATE REACTION ({tmpl_rxn_id})'.format(tmpl_rxn_id=tmpl_rxn_id),
-            tmpl_rxn,
+            _tmpl_rxn,
             side,
             logger=logger
         )
@@ -165,18 +176,20 @@ def check_compounds_number(
 
 def build_final_transfo(
     trans_input: Dict,
-    added_cmpds: Dict,
+    missing_compounds: Dict,
     logger: Logger = getLogger(__name__)
 ) -> Dict:
+    logger.debug(f'trans_input: {trans_input}')
+    logger.debug(f'added_cmpds: {missing_compounds}')
     compl_transfo = {}
     # Add compound to add to input transformation
     for side in SIDES:
         compl_transfo[side] = list(trans_input[side])
         # All infos (stoichio, cid, smiles, InChI...) for compounds with known structures a
-        for cmpd_id, cmpd_infos in added_cmpds[side].items():
+        for cmpd_id, cmpd_infos in missing_compounds[side].items():
             compl_transfo[side] += [cmpd_infos[trans_input['format']]]*cmpd_infos['stoichio']
         # Only cid and stoichio for compounds with no structure
-        for cmpd_id, cmpd_infos in added_cmpds[side+'_nostruct'].items():
+        for cmpd_id, cmpd_infos in missing_compounds[side+'_nostruct'].items():
             compl_transfo[side] += [cmpd_infos['cid']]*cmpd_infos['stoichio']
     logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
     return compl_transfo
@@ -253,6 +266,10 @@ def detect_missing_compounds(
     compounds_nostruct: List
         Compounds with no structure
     """
+
+    logger.debug(f'tmpl_rxn: {tmpl_rxn}')
+    logger.debug(f'rxn_rule: {rxn_rule}')
+
     added_compounds = {
         'left': {},
         'right': {},
@@ -266,6 +283,13 @@ def detect_missing_compounds(
         diff_cmpds = dict(
             (Counter(tmpl_rxn[side]) - Counter(rxn_rule[side]))
         )
+        # print()
+        # print(side)
+        # print("="*len(side))
+        # print("TMPL:", tmpl_rxn[side])
+        # print("RULE:", rxn_rule[side])
+        # print("DIFF:", diff_cmpds)
+        # print()
         # Fill the dictionary with all informations about the compounds to add
         for cmp_id, cmp_sto in diff_cmpds.items():
             # Handle compounds with no structure
