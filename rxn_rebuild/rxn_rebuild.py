@@ -168,10 +168,21 @@ def check_compounds_number(
     # is equal to the number of products of rxn_2.
     if len(rxn_1[side]) != sum(rxn_2[side].values()):
         logger.warning(
-            '      Number of compounds different in the template reaction and the transformation to complete'
+            '      + Number of compounds different in the template reaction and the transformation to complete'
         )
         logger.warning('         |- '+rxn_name_1+' ['+side+']: ' + str(rxn_1[side]))
         logger.warning('         |- '+rxn_name_2+' ['+side+']: ' + str(rxn_2[side]))
+
+
+def __round_stoichio(
+    value: float,
+    cmpd_id: str,
+    logger: Logger = getLogger(__file__)
+) -> int:
+    r_value = round(value)
+    if r_value != value:
+        logger.warning(f'      + Stoichometric coefficient for {cmpd_id} ({value}) has been rounded.')
+    return r_value
 
 
 def build_final_transfo(
@@ -182,15 +193,17 @@ def build_final_transfo(
     logger.debug(f'trans_input: {trans_input}')
     logger.debug(f'added_cmpds: {missing_compounds}')
     compl_transfo = {}
-    # Add compound to add to input transformation
+    # Add compounds to add to input transformation
     for side in SIDES:
         compl_transfo[side] = list(trans_input[side])
         # All infos (stoichio, cid, smiles, InChI...) for compounds with known structures a
         for cmpd_id, cmpd_infos in missing_compounds[side].items():
-            compl_transfo[side] += [cmpd_infos[trans_input['format']]]*cmpd_infos['stoichio']
+            r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
+            compl_transfo[side] += [cmpd_infos[trans_input['format']]]*r_stoichio
         # Only cid and stoichio for compounds with no structure
         for cmpd_id, cmpd_infos in missing_compounds[side+'_nostruct'].items():
-            compl_transfo[side] += [cmpd_infos['cid']]*cmpd_infos['stoichio']
+            r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
+            compl_transfo[side] += [cmpd_infos['cid']]*r_stoichio
     logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
     return compl_transfo
 
