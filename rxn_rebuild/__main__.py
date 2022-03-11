@@ -70,8 +70,8 @@ def entry_point():
         log_basicConfig(filename=args.log_file, encoding='utf-8')
 
     cache = rrCache(
-        attrs=['rr_reactions', 'template_reactions', 'cid_strc']
-        # logger=logger
+        attrs=['rr_reactions', 'template_reactions', 'cid_strc'],
+        logger=logger
     )
 
     msg_rr = '{color}{typo}Reaction Rule\n   |- ID:{rst} {rr_id}'
