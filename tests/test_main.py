@@ -16,7 +16,7 @@ from brs_utils import create_logger
 class Test(TestCase):
 
     # Set attributes
-    logger = create_logger(__name__, 'DEBUG')
+    logger = create_logger(__name__, 'INFO')
     cache = rrCache(
         attrs=['rr_reactions', 'template_reactions', 'cid_strc']
     )
@@ -33,14 +33,24 @@ class Test(TestCase):
         self.assertEqual(
             completed_transfos,
             {
-                "MNXR94682": {
-                    "added_cmpds": {
-                        "left": {},
-                        "right": {},
-                        "left_nostruct": {},
-                        "right_nostruct": {}
+                'MNXR94682': {
+                    'full_transfo': {
+                        'left': {
+                            '[H][O][C](=[O])[C](=[O])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([H])[O][H]': 1.0
+                        },
+                        'right': {
+                            '[H]OC(=O)C(=O)C([H])(O[H])C([H])(O[H])C([H])([H])C([H])=O': 1.0,
+                            '[H]O[H]': 2.0
+                        }
                     },
-                    "full_transfo": "[H][O][C](=[O])[C](=[O])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([H])[O][H]>>[H]OC(=O)C(=O)C([H])(O[H])C([H])(O[H])C([H])([H])C([H])=O.[H]O[H].[H]O[H]"
+                    'added_cmpds': {
+                        'left': {},
+                        'right': {},
+                        'left_nostruct': {},
+                        'right_nostruct': {}
+                    },
+                    'sep_side': '>>',
+                    'sep_cmpd': '.'
                 }
             }
         )
@@ -58,10 +68,21 @@ class Test(TestCase):
             completed_transfos,
             {
                 "MNXR94690": {
+                    "full_transfo": {
+                        "left": {
+                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]": 1.0,
+                            "O": 1.0
+                        },
+                        "right": {
+                            "[H+]": 2.0,
+                            "[H][N]=[C]([O][H])[C]1=[C]([H])[N]([C]2([H])[O][C]([H])([C]([H])([H])[O][P](=[O])([O][H])[O][P](=[O])([O][H])[O][C]([H])([H])[C]3([H])[O][C]([H])([n]4[c]([H])[n][c]5[c]([N]([H])[H])[n][c]([H])[n][c]54)[C]([H])([O][H])[C]3([H])[O][H])[C]([H])([O][H])[C]2([H])[O][H])[C]([H])=[C]([H])[C]1([H])[H]": 1.0,
+                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])=[O]": 1.0
+                        }
+                    },
                     "added_cmpds": {
                         "left": {
                             "MNXM2": {
-                                "stoichio": 1,
+                                "stoichio": 1.0,
                                 "formula": "H2O",
                                 "smiles": "O",
                                 "inchi": "InChI=1S/H2O/h1H2",
@@ -72,7 +93,7 @@ class Test(TestCase):
                         },
                         "right": {
                             "MNXM1": {
-                                "stoichio": 1,
+                                "stoichio": 1.0,
                                 "formula": "H",
                                 "smiles": "[H+]",
                                 "inchi": "InChI=1S/p+1",
@@ -84,13 +105,27 @@ class Test(TestCase):
                         "left_nostruct": {},
                         "right_nostruct": {}
                     },
-                    "full_transfo": "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H].O>>[H+].[H][N]=[C]([O][H])[C]1=[C]([H])[N]([C]2([H])[O][C]([H])([C]([H])([H])[O][P](=[O])([O][H])[O][P](=[O])([O][H])[O][C]([H])([H])[C]3([H])[O][C]([H])([n]4[c]([H])[n][c]5[c]([N]([H])[H])[n][c]([H])[n][c]54)[C]([H])([O][H])[C]3([H])[O][H])[C]([H])([O][H])[C]2([H])[O][H])[C]([H])=[C]([H])[C]1([H])[H].[H][O][C]([H])([H])[C]([H])([H])[C]([H])=[O].[H+]"
+                    "sep_side": ">>",
+                    "sep_cmpd": "."
                 },
                 "MNXR119958": {
+                    "full_transfo": {
+                        "left": {
+                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]": 1.0,
+                            "O": 1.0,
+                            "MNXM8975": 1.0
+                        },
+                        "right": {
+                            "[H+]": 1.0,
+                            "[H][N]=[C]([O][H])[C]1=[C]([H])[N]([C]2([H])[O][C]([H])([C]([H])([H])[O][P](=[O])([O][H])[O][P](=[O])([O][H])[O][C]([H])([H])[C]3([H])[O][C]([H])([n]4[c]([H])[n][c]5[c]([N]([H])[H])[n][c]([H])[n][c]54)[C]([H])([O][H])[C]3([H])[O][H])[C]([H])([O][H])[C]2([H])[O][H])[C]([H])=[C]([H])[C]1([H])[H]": 1.0,
+                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])=[O]": 1.0,
+                            "MNXM36": 1.0
+                        }
+                    },
                     "added_cmpds": {
                         "left": {
                             "MNXM2": {
-                                "stoichio": 1,
+                                "stoichio": 1.0,
                                 "formula": "H2O",
                                 "smiles": "O",
                                 "inchi": "InChI=1S/H2O/h1H2",
@@ -102,23 +137,38 @@ class Test(TestCase):
                         "right": {},
                         "left_nostruct": {
                             "MNXM8975": {
-                                "stoichio": 1,
+                                "stoichio": 1.0,
                                 "cid": "MNXM8975"
                             }
                         },
                         "right_nostruct": {
                             "MNXM36": {
-                                "stoichio": 1,
+                                "stoichio": 1.0,
                                 "cid": "MNXM36"
                             }
                         }
-                    }
+                    },
+                    "sep_side": ">>",
+                    "sep_cmpd": "."
                 },
                 "MNXR125838": {
+                    "full_transfo": {
+                        "left": {
+                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]": 1.0,
+                            "O": 1.0,
+                            "MNXM35": 1.0
+                        },
+                        "right": {
+                            "[H+]": 1.0,
+                            "[H][N]=[C]([O][H])[C]1=[C]([H])[N]([C]2([H])[O][C]([H])([C]([H])([H])[O][P](=[O])([O][H])[O][P](=[O])([O][H])[O][C]([H])([H])[C]3([H])[O][C]([H])([n]4[c]([H])[n][c]5[c]([N]([H])[H])[n][c]([H])[n][c]54)[C]([H])([O][H])[C]3([H])[O][H])[C]([H])([O][H])[C]2([H])[O][H])[C]([H])=[C]([H])[C]1([H])[H]": 1.0,
+                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])=[O]": 1.0,
+                            "MNXM24": 1.0
+                        }
+                    },
                     "added_cmpds": {
                         "left": {
                             "MNXM2": {
-                                "stoichio": 1,
+                                "stoichio": 1.0,
                                 "formula": "H2O",
                                 "smiles": "O",
                                 "inchi": "InChI=1S/H2O/h1H2",
@@ -130,23 +180,38 @@ class Test(TestCase):
                         "right": {},
                         "left_nostruct": {
                             "MNXM35": {
-                                "stoichio": 1,
+                                "stoichio": 1.0,
                                 "cid": "MNXM35"
                             }
                         },
                         "right_nostruct": {
                             "MNXM24": {
-                                "stoichio": 1,
+                                "stoichio": 1.0,
                                 "cid": "MNXM24"
                             }
                         }
-                    }
+                    },
+                    "sep_side": ">>",
+                    "sep_cmpd": "."
                 },
                 "MNXR128882": {
+                    "full_transfo": {
+                        "left": {
+                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]": 1.0,
+                            "O": 1.0,
+                            "MNXM35": 1.0
+                        },
+                        "right": {
+                            "[H+]": 1.0,
+                            "[H][N]=[C]([O][H])[C]1=[C]([H])[N]([C]2([H])[O][C]([H])([C]([H])([H])[O][P](=[O])([O][H])[O][P](=[O])([O][H])[O][C]([H])([H])[C]3([H])[O][C]([H])([n]4[c]([H])[n][c]5[c]([N]([H])[H])[n][c]([H])[n][c]54)[C]([H])([O][H])[C]3([H])[O][H])[C]([H])([O][H])[C]2([H])[O][H])[C]([H])=[C]([H])[C]1([H])[H]": 1.0,
+                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])=[O]": 1.0,
+                            "MNXM24": 1.0
+                        }
+                    },
                     "added_cmpds": {
                         "left": {
                             "MNXM2": {
-                                "stoichio": 1,
+                                "stoichio": 1.0,
                                 "formula": "H2O",
                                 "smiles": "O",
                                 "inchi": "InChI=1S/H2O/h1H2",
@@ -158,17 +223,19 @@ class Test(TestCase):
                         "right": {},
                         "left_nostruct": {
                             "MNXM35": {
-                                "stoichio": 1,
+                                "stoichio": 1.0,
                                 "cid": "MNXM35"
                             }
                         },
                         "right_nostruct": {
                             "MNXM24": {
-                                "stoichio": 1,
+                                "stoichio": 1.0,
                                 "cid": "MNXM24"
                             }
                         }
-                    }
+                    },
+                    "sep_side": ">>",
+                    "sep_cmpd": "."
                 }
             }
         )
@@ -185,13 +252,23 @@ class Test(TestCase):
             completed_transfos,
             {
                 "MNXR94682": {
+                    "full_transfo": {
+                        "left": {
+                            "[H][O][C](=[O])[C](=[O])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([H])[O][H]": 1.0
+                        },
+                        "right": {
+                            "[H]OC(=O)C(=O)C([H])(O[H])C([H])(O[H])C([H])([H])C([H])=O": 1.0,
+                            "[H]O[H]": 2.0
+                        }
+                    },
                     "added_cmpds": {
                         "left": {},
                         "right": {},
                         "left_nostruct": {},
                         "right_nostruct": {}
                     },
-                    "full_transfo": "[H][O][C](=[O])[C](=[O])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([H])[O][H]>>[H]OC(=O)C(=O)C([H])(O[H])C([H])(O[H])C([H])([H])C([H])=O.[H]O[H].[H]O[H]"
+                    "sep_side": ">>",
+                    "sep_cmpd": "."
                 }
             }
         )
@@ -209,12 +286,23 @@ class Test(TestCase):
             ),
             {
                 "MNXR96458": {
-                    "full_transfo": "[H]Oc1c([H])c([H])c([H])c([H])c1O[H].O=O>>[H]OC(=O)C([H])=C([H])C([H])=C([H])C(=O)O[H].[H+].[H+]",
+                    "full_transfo": {
+                        'left': {
+                            '[H]Oc1c([H])c([H])c([H])c([H])c1O[H]': 1.0,
+                            'O=O': 1.0
+                        },
+                        'right': {
+                            '[H]OC(=O)C([H])=C([H])C([H])=C([H])C(=O)O[H]': 1.0,
+                            '[H+]': 2.0
+                        },
+                    },
+                    'sep_side': '>>',
+                    'sep_cmpd': '.',
                     "added_cmpds": {
                         "left": {},
                         "right": {
                             "MNXM1": {
-                                "stoichio": 2,
+                                "stoichio": 2.0,
                                 "formula": "H",
                                 "smiles": "[H+]",
                                 "inchi": "InChI=1S/p+1",
@@ -231,7 +319,7 @@ class Test(TestCase):
         )
 
     def test_complete_transfo(self):
-        trans_input = {'left': ['[H]OC(=O)C(=O)C([H])([H])[H]', '[H]OO[H]'], 'right': ['[H]OC(=O)C([H])(O[H])C([H])([H])[H]'], 'format': 'smiles', 'sep_side': '>>', 'sep_cmpd': '.'}
+        trans_input = {'left': {'[H]OC(=O)C(=O)C([H])([H])[H]': 1, '[H]OO[H]': 1}, 'right': {'[H]OC(=O)C([H])(O[H])C([H])([H])[H]':1}, 'format': 'smiles', 'sep_side': '>>', 'sep_cmpd': '.'}
         rxn_rule = {'rule_id': 'RR-02-0f2f669fd09feecb-12-F', 'rule_score': 0.3819283206707785, 'reac_id': 'MNXR133653', 'subs_id': 'MNXM179', 'rel_direction': 1, 'left': {'MNXM179': 1}, 'right': {'MNXM22': 1, 'MNXM23': 1}}
         tmpl_rxn = {'left': {'MNXM179': 1, 'MNXM4': 1}, 'right': {'MNXM22': 1, 'MNXM23': 1}, 'direction': 1, 'main_left': ['MNXM179'], 'main_right': ['MNXM22', 'MNXM23']}
         tmpl_rxn_id = 'MNXR133653'
@@ -248,7 +336,31 @@ class Test(TestCase):
             )
             self.assertDictEqual(
                 compl_transfo,
-                {'added_cmpds': {'left': {}, 'right': {}, 'left_nostruct': {}, 'right_nostruct': {'MNXM4': {'stoichio': 1, 'cid': 'MNXM4'}}}}
+                {
+                    "full_transfo": {
+                        "left": {
+                            "[H]OC(=O)C(=O)C([H])([H])[H]": 1,
+                            "[H]OO[H]": 1
+                        },
+                        "right": {
+                            "[H]OC(=O)C([H])(O[H])C([H])([H])[H]": 1,
+                            "MNXM4": 1
+                        }
+                    },
+                    "added_cmpds": {
+                        "left": {},
+                        "right": {},
+                        "left_nostruct": {},
+                        "right_nostruct": {
+                            "MNXM4": {
+                                "stoichio": 1,
+                                "cid": "MNXM4"
+                            }
+                        }
+                    },
+                    "sep_side": ">>",
+                    "sep_cmpd": "."
+                }
             )
         # REVERSE (x2 to see if results are same)
         for i in range(2):
@@ -262,5 +374,29 @@ class Test(TestCase):
             )
             self.assertDictEqual(
                 compl_transfo,
-                {'added_cmpds': {'left': {}, 'right': {}, 'left_nostruct': {'MNXM4': {'stoichio': 1, 'cid': 'MNXM4'}}, 'right_nostruct': {}}}
+                {
+                    "full_transfo": {
+                        "left": {
+                            "[H]OC(=O)C(=O)C([H])([H])[H]": 1,
+                            "[H]OO[H]": 1,
+                            "MNXM4": 1
+                        },
+                        "right": {
+                            "[H]OC(=O)C([H])(O[H])C([H])([H])[H]": 1
+                        }
+                    },
+                    "added_cmpds": {
+                        "left": {},
+                        "right": {},
+                        "left_nostruct": {
+                            "MNXM4": {
+                                "stoichio": 1,
+                                "cid": "MNXM4"
+                            }
+                        },
+                        "right_nostruct": {}
+                    },
+                    "sep_side": ">>",
+                    "sep_cmpd": "."
+                }
             )

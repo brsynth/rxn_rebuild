@@ -25,8 +25,13 @@ def rebuild_rxn(
     logger: Logger = getLogger(__name__)
 ) -> str:
 
+    logger.debug(f'rxn_rule_id: {rxn_rule_id}')
+    logger.debug(f'transfo: {transfo}')
+    logger.debug(f'tmpl_rxn_id: {tmpl_rxn_id}')
+    logger.debug(f'direction: {direction}')
+
     ## INPUT TRANSFORMATION
-    trans_input = build_trans_input(transfo.replace(' ', ''))  # remove whitespaces
+    trans_input = build_trans_input(transfo, logger)  # remove whitespaces
     # # If input transfo is provided in forward direction,
     # # swap left and right sides
     # if direction == 'forward' or direction == 'fwd':
@@ -75,8 +80,6 @@ def complete_transfo(
     direction: str = 'reverse',
     logger: Logger = getLogger(__name__)
 ) -> Dict:
-
-    completed_transfo = {}
 
     logger.debug('REACTION RULE:'+str(dumps(rxn_rule, indent=4)))
 
@@ -142,18 +145,12 @@ def complete_transfo(
             logger=logger
         )
 
-    # Build full transformation only if there is no compound without structure
-    # or if the input format of the transforamtion to complete is 'cid'
-    if missing_compounds['left_nostruct'] == missing_compounds['right_nostruct'] == {} \
-    or trans_input['format'] == 'cid':
-        completed_transfo['full_transfo'] = \
-              trans_input['sep_cmpd'].join(compl_transfo['left']) \
-            + trans_input['sep_side'] \
-            + trans_input['sep_cmpd'].join(compl_transfo['right'])
-
-    completed_transfo['added_cmpds'] = missing_compounds
-
-    return completed_transfo
+    return {
+        'full_transfo': compl_transfo,
+        'added_cmpds': missing_compounds,
+        'sep_side': trans_input['sep_side'],
+        'sep_cmpd': trans_input['sep_cmpd']
+    }
 
 
 def check_compounds_number(
@@ -164,9 +161,11 @@ def check_compounds_number(
     side: str,
     logger: Logger = getLogger(__name__)
 ) -> None:
+    logger.debug(f'rxn_1: {rxn_1}')
+    logger.debug(f'rxn_2: {rxn_2}')
     # Check if the number of structures in the part of SMILES of rxn_1
     # is equal to the number of products of rxn_2.
-    if len(rxn_1[side]) != sum(rxn_2[side].values()):
+    if sum(rxn_1[side].values()) != sum(rxn_2[side].values()):
         logger.warning(
             '      + Number of compounds different in the template reaction and the transformation to complete'
         )
@@ -195,15 +194,21 @@ def build_final_transfo(
     compl_transfo = {}
     # Add compounds to add to input transformation
     for side in SIDES:
-        compl_transfo[side] = list(trans_input[side])
+        compl_transfo[side] = deepcopy(trans_input[side])
         # All infos (stoichio, cid, smiles, InChI...) for compounds with known structures a
         for cmpd_id, cmpd_infos in missing_compounds[side].items():
-            r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
-            compl_transfo[side] += [cmpd_infos[trans_input['format']]]*r_stoichio
+            _cmpd_id = cmpd_infos[trans_input['format']]
+            # r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
+            if not _cmpd_id in compl_transfo[side]:
+                compl_transfo[side][_cmpd_id] = 0
+            compl_transfo[side][_cmpd_id] += cmpd_infos['stoichio']
         # Only cid and stoichio for compounds with no structure
         for cmpd_id, cmpd_infos in missing_compounds[side+'_nostruct'].items():
-            r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
-            compl_transfo[side] += [cmpd_infos['cid']]*r_stoichio
+            _cmpd_id = cmpd_infos['cid']
+            # r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
+            if not _cmpd_id in compl_transfo[side]:
+                compl_transfo[side][_cmpd_id] = 0
+            compl_transfo[side][_cmpd_id] += cmpd_infos['stoichio']
     logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
     return compl_transfo
 
@@ -218,7 +223,8 @@ def build_trans_input(
     Parameters
     ----------
     trans_smi: str
-        Transformation in SMILES format.
+        Transformation in SMILES format or with CID.
+        Stoichiometric coefficients must be separated by spaces.
     logger : Logger
         The logger object.
 
@@ -227,9 +233,11 @@ def build_trans_input(
     transfo: Dict
         Dictionary of the transformation.
     """
+    logger.debug(f'transfo: {transfo}')
+
     trans_input = {
-        'left': [],
-        'right': [],
+        'left': {},
+        'right': {},
         'format': '',
         'sep_side': '',
         'sep_cmpd': ''
@@ -247,7 +255,18 @@ def build_trans_input(
     trans['left'], trans['right'] = transfo.split(trans_input['sep_side'])
     for side in SIDES:
         for cmpd in trans[side].split(trans_input['sep_cmpd']):
-            trans_input[side] += [cmpd]
+            # Separate compounds, remove leading and trailing spaces
+            _list = cmpd.strip().split(' ')
+            # Detect stoichio coeff
+            if len(_list) > 1:
+                _coeff = float(_list[0])
+                _cmpd = _list[1]
+            else:
+                _coeff = 1.0
+                _cmpd = _list[0]
+            if not _cmpd in trans_input[side]:
+                trans_input[side][_cmpd] = 0
+            trans_input[side][_cmpd] += _coeff
     logger.debug('INPUT TRANSFORMATION: '+str(dumps(trans_input, indent=4)))
     return trans_input
 
