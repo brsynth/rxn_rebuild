@@ -78,9 +78,9 @@ jobs:
     steps:
       ## CREATE TAG/RELEASE
       - uses: actions/checkout@v2
-        with:
-          persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
-          fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
+        # with:
+        #   persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal access token.
+        #   fetch-depth: 0 # otherwise, there would be errors pushing refs to the destination repository.
       - name: Bump version and push tag
         id: tag_version
         uses: mathieudutour/github-tag-action@v5.6
