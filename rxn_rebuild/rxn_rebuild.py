@@ -15,6 +15,7 @@ from rr_cache import rrCache
 
 SIDES = ['left', 'right']
 
+
 def rebuild_rxn(
     rxn_rule_id: str,
     transfo: str,
