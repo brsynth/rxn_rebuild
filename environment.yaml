@@ -4,4 +4,5 @@ channels:
 dependencies:
   - python
   - brs_utils
-  - rr_cache
+  - rr_cache>=3.1.0
+  - chemlite
