@@ -125,6 +125,7 @@ def complete_transfo(
         _tmpl_rxn,
         _rxn_rule,
         compounds,
+        cmpds_to_ignore=cmpds_to_ignore,
         logger=logger
     )
 
@@ -132,7 +133,6 @@ def complete_transfo(
     compl_transfo = build_final_transfo(
         trans_input=trans_input,
         missing_compounds=missing_compounds,
-        cmpds_to_ignore=cmpds_to_ignore,
         logger=logger
     )
 
@@ -191,10 +191,9 @@ def __round_stoichio(
 def build_final_transfo(
     trans_input: Dict,
     missing_compounds: Dict,
-    cmpds_to_ignore: List[str] = [],
     logger: Logger = getLogger(__name__)
 ) -> Dict:
-    
+
     logger.debug(f'trans_input: {trans_input}')
     logger.debug(f'added_cmpds: {missing_compounds}')
     compl_transfo = {}
@@ -207,24 +206,18 @@ def build_final_transfo(
         # All infos (stoichio, cid, smiles, InChI...) for compounds with known structures
         for cmpd_id, cmpd_infos in missing_compounds[side].items():
             _cmpd_id = cmpd_infos[trans_input['format']]
-            if _cmpd_id not in cmpds_to_ignore:
-                # r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
-                if _cmpd_id not in compl_transfo[side]:
-                    compl_transfo[side][_cmpd_id] = 0
-                compl_transfo[side][_cmpd_id] += cmpd_infos['stoichio']
-            else:
-                logger.warning(f'      + Ignoring compound {_cmpd_id} ({cmpd_infos["stoichio"]}) on {side} side of the transformation')
+            # r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
+            if _cmpd_id not in compl_transfo[side]:
+                compl_transfo[side][_cmpd_id] = 0
+            compl_transfo[side][_cmpd_id] += cmpd_infos['stoichio']
 
         # Only cid and stoichio for compounds with no structure
         for cmpd_id, cmpd_infos in missing_compounds[side+'_nostruct'].items():
             _cmpd_id = cmpd_infos['cid']
-            if _cmpd_id not in cmpds_to_ignore:
-                # r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
-                if _cmpd_id not in compl_transfo[side]:
-                    compl_transfo[side][_cmpd_id] = 0
-                compl_transfo[side][_cmpd_id] += cmpd_infos['stoichio']
-            else:
-                logger.warning(f'      + Ignoring compound {_cmpd_id} ({cmpd_infos["stoichio"]}) on {side} side of the transformation')
+            # r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
+            if _cmpd_id not in compl_transfo[side]:
+                compl_transfo[side][_cmpd_id] = 0
+            compl_transfo[side][_cmpd_id] += cmpd_infos['stoichio']
 
     logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
 
@@ -293,6 +286,7 @@ def detect_missing_compounds(
     tmpl_rxn: Dict,
     rxn_rule: Dict,
     cid_strc: Dict,
+    cmpds_to_ignore: List[str] = [],
     logger: Logger = getLogger(__file__)
 ) -> Tuple[Dict, List]:
     """
@@ -306,6 +300,8 @@ def detect_missing_compounds(
         Reaction rule.
     cid_strc: Dict
         Compound structures.
+    cmpds_to_ignore: List[str]
+        List of compounds to ignore.
     logger : Logger
         The logger object.
 
@@ -342,6 +338,9 @@ def detect_missing_compounds(
         # print()
         # Fill the dictionary with all informations about the compounds to add
         for cmp_id, cmp_sto in diff_cmpds.items():
+            if cmp_id in cmpds_to_ignore:
+                logger.warning(f'      + Ignoring compound {cmp_id} ({cmp_sto}) on {side} side of the transformation')
+                continue
             # Handle compounds with no structure
             if cmp_id in cid_strc:
                 added_compounds[side][cmp_id] = {}

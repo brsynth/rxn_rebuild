@@ -435,12 +435,7 @@ class Test(TestCase):
                         "left": {},
                         "right": {},
                         "left_nostruct": {},
-                        "right_nostruct": {
-                            "MNXM4": {
-                                "stoichio": 1,
-                                "cid": "MNXM4"
-                            }
-                        }
+                        "right_nostruct": {}
                     },
                     "sep_side": ">>",
                     "sep_cmpd": "."
@@ -472,12 +467,7 @@ class Test(TestCase):
                     "added_cmpds": {
                         "left": {},
                         "right": {},
-                        "left_nostruct": {
-                            "MNXM4": {
-                                "stoichio": 1,
-                                "cid": "MNXM4"
-                            }
-                        },
+                        "left_nostruct": {},
                         "right_nostruct": {}
                     },
                     "sep_side": ">>",
