@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.0](https://github.com/brsynth/rxn_rebuild/tree/3.1.0) (2025-07-28)
+
+[Full Changelog](https://github.com/brsynth/rxn_rebuild/compare/3.0.3...3.1.0)
+
+**Closed issues:**
+
+- Missing reaction / KeyError rebuild\_rxn method [\#1](https://github.com/brsynth/rxn_rebuild/issues/1)
+
 ## [3.0.3](https://github.com/brsynth/rxn_rebuild/tree/3.0.3) (2022-03-16)
 
 [Full Changelog](https://github.com/brsynth/rxn_rebuild/compare/3.0.0...3.0.3)
