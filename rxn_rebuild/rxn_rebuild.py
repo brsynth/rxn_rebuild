@@ -11,9 +11,7 @@ from collections import Counter
 from json import dumps
 from copy import deepcopy
 from rr_cache import rrCache
-
-
-SIDES = ['left', 'right']
+from chemlite import Reaction
 
 
 def rebuild_rxn(
@@ -31,7 +29,7 @@ def rebuild_rxn(
     logger.debug(f'direction: {direction}')
 
     ## INPUT TRANSFORMATION
-    trans_input = build_trans_input(transfo, logger)  # remove whitespaces
+    trans_input = Reaction.parse(transfo, logger)
     # # If input transfo is provided in forward direction,
     # # swap left and right sides
     # if direction == 'forward' or direction == 'fwd':
@@ -135,7 +133,7 @@ def complete_transfo(
     ## CHECK 2/2
     # Check if the number of compounds in both right and left sides of SMILES of the completed transformation
     # is equal to the ones of the template reaction
-    for side in SIDES:
+    for side in Reaction.get_SIDES():
         check_compounds_number(
             'COMPLETED TRANSFORMATION',
             compl_transfo,
@@ -193,7 +191,7 @@ def build_final_transfo(
     logger.debug(f'added_cmpds: {missing_compounds}')
     compl_transfo = {}
     # Add compounds to add to input transformation
-    for side in SIDES:
+    for side in Reaction.get_SIDES():
         compl_transfo[side] = deepcopy(trans_input[side])
         # All infos (stoichio, cid, smiles, InChI...) for compounds with known structures a
         for cmpd_id, cmpd_infos in missing_compounds[side].items():
@@ -253,7 +251,7 @@ def build_trans_input(
         trans_input['sep_cmpd'] = '+'
     trans = {}
     trans['left'], trans['right'] = transfo.split(trans_input['sep_side'])
-    for side in SIDES:
+    for side in Reaction.get_SIDES():
         for cmpd in trans[side].split(trans_input['sep_cmpd']):
             # Separate compounds, remove leading and trailing spaces
             _list = cmpd.strip().split(' ')
@@ -309,7 +307,7 @@ def detect_missing_compounds(
         'right_nostruct': {}
     }
 
-    for side in SIDES:
+    for side in Reaction.get_SIDES():
         # Get the difference between the template reaction and the reaction rule,
         # difference in compounds and in stoichio coeff
         diff_cmpds = dict(
