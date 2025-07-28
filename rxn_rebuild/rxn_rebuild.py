@@ -177,15 +177,15 @@ def check_compounds_number(
         logger.warning('         |- '+rxn_name_2+' ['+side+']: ' + str(rxn_2[side]))
 
 
-def __round_stoichio(
-    value: float,
-    cmpd_id: str,
-    logger: Logger = getLogger(__file__)
-) -> int:
-    r_value = round(value)
-    if r_value != value:
-        logger.warning(f'      + Stoichometric coefficient for {cmpd_id} ({value}) has been rounded.')
-    return r_value
+# def __round_stoichio(
+#     value: float,
+#     cmpd_id: str,
+#     logger: Logger = getLogger(__file__)
+# ) -> int:
+#     r_value = round(value)
+#     if r_value != value:
+#         logger.warning(f'      + Stoichometric coefficient for {cmpd_id} ({value}) has been rounded.')
+#     return r_value
 
 
 def build_final_transfo(
