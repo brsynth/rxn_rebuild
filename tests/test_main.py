@@ -400,3 +400,87 @@ class Test(TestCase):
                     "sep_cmpd": "."
                 }
             )
+
+    def test_complete_transfo_with_compds_to_ignore(self):
+        trans_input = {'left': {'[H]OC(=O)C(=O)C([H])([H])[H]': 1, '[H]OO[H]': 1}, 'right': {'[H]OC(=O)C([H])(O[H])C([H])([H])[H]':1}, 'format': 'smiles', 'sep_side': '>>', 'sep_cmpd': '.'}
+        rxn_rule = {'rule_id': 'RR-02-0f2f669fd09feecb-12-F', 'rule_score': 0.3819283206707785, 'reac_id': 'MNXR133653', 'subs_id': 'MNXM179', 'rel_direction': 1, 'left': {'MNXM179': 1}, 'right': {'MNXM22': 1, 'MNXM23': 1}}
+        tmpl_rxn = {'left': {'MNXM179': 1, 'MNXM4': 1}, 'right': {'MNXM22': 1, 'MNXM23': 1}, 'direction': 1, 'main_left': ['MNXM179'], 'main_right': ['MNXM22', 'MNXM23']}
+        tmpl_rxn_id = 'MNXR133653'
+        compounds = {'left': {'MNXM4': {'stoichio': 1, 'formula': 'O2', 'smiles': 'O=O', 'inchi': 'InChI=1S/O2/c1-2', 'inchikey': 'MYMOFIZGZYHOMD-UHFFFAOYSA-N', 'cid': 'MNXM4', 'name': 'O2'}}, 'right': {}, 'left_nostruct': {}, 'right_nostruct': {}}
+        cmpds_to_ignore = ['MNXM4']
+        # FORWARD (x2 to see if results are same)
+        for i in range(2):
+            compl_transfo = complete_transfo(
+                trans_input=trans_input,
+                rxn_rule=rxn_rule,
+                tmpl_rxn=tmpl_rxn,
+                tmpl_rxn_id=tmpl_rxn_id,
+                compounds=compounds,
+                direction='forward',
+                cmpds_to_ignore=cmpds_to_ignore
+            )
+            self.assertDictEqual(
+                compl_transfo,
+                {
+                    "full_transfo": {
+                        "left": {
+                            "[H]OC(=O)C(=O)C([H])([H])[H]": 1,
+                            "[H]OO[H]": 1
+                        },
+                        "right": {
+                            "[H]OC(=O)C([H])(O[H])C([H])([H])[H]": 1
+                        }
+                    },
+                    "added_cmpds": {
+                        "left": {},
+                        "right": {},
+                        "left_nostruct": {},
+                        "right_nostruct": {
+                            "MNXM4": {
+                                "stoichio": 1,
+                                "cid": "MNXM4"
+                            }
+                        }
+                    },
+                    "sep_side": ">>",
+                    "sep_cmpd": "."
+                }
+            )
+        # REVERSE (x2 to see if results are same)
+        for i in range(2):
+            compl_transfo = complete_transfo(
+                trans_input=trans_input,
+                rxn_rule=rxn_rule,
+                tmpl_rxn=tmpl_rxn,
+                tmpl_rxn_id=tmpl_rxn_id,
+                compounds=compounds,
+                direction='reverse',
+                cmpds_to_ignore=cmpds_to_ignore
+            )
+            self.assertDictEqual(
+                compl_transfo,
+                {
+                    "full_transfo": {
+                        "left": {
+                            "[H]OC(=O)C(=O)C([H])([H])[H]": 1,
+                            "[H]OO[H]": 1
+                        },
+                        "right": {
+                            "[H]OC(=O)C([H])(O[H])C([H])([H])[H]": 1
+                        }
+                    },
+                    "added_cmpds": {
+                        "left": {},
+                        "right": {},
+                        "left_nostruct": {
+                            "MNXM4": {
+                                "stoichio": 1,
+                                "cid": "MNXM4"
+                            }
+                        },
+                        "right_nostruct": {}
+                    },
+                    "sep_side": ">>",
+                    "sep_cmpd": "."
+                }
+            )

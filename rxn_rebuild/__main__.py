@@ -97,12 +97,20 @@ def entry_point():
         )
     )
 
+    if args.to_ignore:
+        # One single line with compounds to ignore, separated by commas
+        with open(args.to_ignore, 'r') as f:
+            cmpds_to_ignore = f.read().strip().split(',')
+    else:
+        cmpds_to_ignore = []
+
     completed_transfos = rebuild_rxn(
               cache = cache,
         rxn_rule_id = args.rxn_rule_id,
             transfo = args.transfo,
           direction = args.direction,
         tmpl_rxn_id = args.tmpl_rxn_id,
+    cmpds_to_ignore = cmpds_to_ignore,
              logger = logger
     )
 

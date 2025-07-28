@@ -60,6 +60,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Direction of the transformation to complete (default: reverse)'
     )
     parser.add_argument(
+        '--to-ignore',
+        type=str,
+        help='Name of the file containing the list of compounds to ignore (default: None)',
+        default=None
+    )
+    parser.add_argument(
         '--version', '-v',
         action='version',
         version='%(prog)s {}'.format(__version__),

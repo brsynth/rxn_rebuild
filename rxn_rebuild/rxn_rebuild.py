@@ -12,6 +12,10 @@ from json import dumps
 from copy import deepcopy
 from rr_cache import rrCache
 from chemlite import Reaction
+from rdkit.Chem import (
+    MolFromSmiles,
+    MolToSmiles
+)
 
 
 def rebuild_rxn(
@@ -20,6 +24,7 @@ def rebuild_rxn(
     direction: str = 'reverse',
     tmpl_rxn_id: str = None,
     cache: 'rrCache' = None,
+    cmpds_to_ignore: List[str] = [],
     logger: Logger = getLogger(__name__)
 ) -> str:
 
@@ -27,6 +32,7 @@ def rebuild_rxn(
     logger.debug(f'transfo: {transfo}')
     logger.debug(f'tmpl_rxn_id: {tmpl_rxn_id}')
     logger.debug(f'direction: {direction}')
+    logger.debug(f'cmpds_to_ignore: {cmpds_to_ignore}')
 
     ## INPUT TRANSFORMATION
     trans_input = Reaction.parse(transfo, logger)
@@ -52,6 +58,7 @@ def rebuild_rxn(
             tmpl_rxn=cache.get('template_reactions')[tmpl_rxn_id],
             tmpl_rxn_id=tmpl_rxn_id,
             compounds=cache.get('cid_strc'),
+            cmpds_to_ignore=cmpds_to_ignore,
             logger=logger
         )
     else:  # One completed transformation per template reaction
@@ -63,6 +70,7 @@ def rebuild_rxn(
                 tmpl_rxn=cache.get('template_reactions')[tpl_rxn_id],
                 tmpl_rxn_id=tpl_rxn_id,
                 compounds=cache.get('cid_strc'),
+                cmpds_to_ignore=cmpds_to_ignore,
                 logger=logger
             )
 
@@ -76,6 +84,7 @@ def complete_transfo(
     tmpl_rxn_id: str,
     compounds: Dict,
     direction: str = 'reverse',
+    cmpds_to_ignore: List[str] = [],
     logger: Logger = getLogger(__name__)
 ) -> Dict:
 
@@ -127,6 +136,7 @@ def complete_transfo(
     compl_transfo = build_final_transfo(
         trans_input=trans_input,
         missing_compounds=missing_compounds,
+        cmpds_to_ignore=cmpds_to_ignore,
         logger=logger
     )
 
@@ -185,29 +195,43 @@ def __round_stoichio(
 def build_final_transfo(
     trans_input: Dict,
     missing_compounds: Dict,
+    cmpds_to_ignore: List[str] = [],
     logger: Logger = getLogger(__name__)
 ) -> Dict:
+    
     logger.debug(f'trans_input: {trans_input}')
     logger.debug(f'added_cmpds: {missing_compounds}')
     compl_transfo = {}
+
     # Add compounds to add to input transformation
     for side in Reaction.get_SIDES():
+
         compl_transfo[side] = deepcopy(trans_input[side])
-        # All infos (stoichio, cid, smiles, InChI...) for compounds with known structures a
+
+        # All infos (stoichio, cid, smiles, InChI...) for compounds with known structures
         for cmpd_id, cmpd_infos in missing_compounds[side].items():
             _cmpd_id = cmpd_infos[trans_input['format']]
-            # r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
-            if not _cmpd_id in compl_transfo[side]:
-                compl_transfo[side][_cmpd_id] = 0
-            compl_transfo[side][_cmpd_id] += cmpd_infos['stoichio']
+            if _cmpd_id not in cmpds_to_ignore:
+                # r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
+                if _cmpd_id not in compl_transfo[side]:
+                    compl_transfo[side][_cmpd_id] = 0
+                compl_transfo[side][_cmpd_id] += cmpd_infos['stoichio']
+            else:
+                logger.warning(f'      + Ignoring compound {_cmpd_id} ({cmpd_infos["stoichio"]}) on {side} side of the transformation')
+
         # Only cid and stoichio for compounds with no structure
         for cmpd_id, cmpd_infos in missing_compounds[side+'_nostruct'].items():
             _cmpd_id = cmpd_infos['cid']
-            # r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
-            if not _cmpd_id in compl_transfo[side]:
-                compl_transfo[side][_cmpd_id] = 0
-            compl_transfo[side][_cmpd_id] += cmpd_infos['stoichio']
+            if _cmpd_id not in cmpds_to_ignore:
+                # r_stoichio = __round_stoichio(cmpd_infos['stoichio'], cmpd_id, logger)
+                if _cmpd_id not in compl_transfo[side]:
+                    compl_transfo[side][_cmpd_id] = 0
+                compl_transfo[side][_cmpd_id] += cmpd_infos['stoichio']
+            else:
+                logger.warning(f'      + Ignoring compound {_cmpd_id} ({cmpd_infos["stoichio"]}) on {side} side of the transformation')
+
     logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
+
     return compl_transfo
 
 
