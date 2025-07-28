@@ -116,7 +116,6 @@ def entry_point():
 
     print_results(completed_transfos, logger)
 
-
     # # Build full transformation only if there is no compound without structure
     # # or if the input format of the transforamtion to complete is 'cid'
     # if trans_input['format'].lower() == 'smiles':
