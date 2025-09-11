@@ -6,6 +6,11 @@ from typing import (
 from brs_utils import add_logger_args
 
 
+DEFAULTS = {
+    'data_type': 'mnx3.1'
+}
+
+
 def build_args_parser(
     prog: str,
     description: str = '',
@@ -64,6 +69,12 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         type=str,
         help='Name of the file containing the list of compounds to ignore (default: None)',
         default=None
+    )
+    parser.add_argument(
+        '--data-type',
+        default=DEFAULTS['data_type'],
+        type=str,
+        help='Type of data to use (e.g. mnx3.1, mnx4.4...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).'
     )
     parser.add_argument(
         '--version', '-v',

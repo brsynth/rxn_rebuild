@@ -12,7 +12,7 @@ from json import dumps
 from copy import deepcopy
 from rr_cache import rrCache
 from chemlite import Reaction
-
+from .Args import DEFAULTS
 
 def rebuild_rxn(
     rxn_rule_id: str,
@@ -21,6 +21,7 @@ def rebuild_rxn(
     tmpl_rxn_id: str = None,
     cache: 'rrCache' = None,
     cmpds_to_ignore: List[str] = [],
+    data_type: str = DEFAULTS['data_type'],
     logger: Logger = getLogger(__name__)
 ) -> str:
 
@@ -39,36 +40,46 @@ def rebuild_rxn(
 
     ## LOAD CACHE
     if cache is None:
+        # cache = rrCache(
+        #     attrs=['rr_reactions', 'template_reactions', 'cid_strc']
+        #     # logger=logger
+        # )
         cache = rrCache(
-            attrs=['rr_reactions', 'template_reactions', 'cid_strc']
-            # logger=logger
+            data_type=data_type,
+            interactive=False,
+            logger=logger
         )
 
     ## COMPLETE TRANSFORMATION
-    completed_transfos = {}
-    if not tmpl_rxn_id is None:
-        completed_transfos[tmpl_rxn_id] = complete_transfo(
-            trans_input=trans_input,
-            direction=direction,
-            rxn_rule=cache.get('rr_reactions')[rxn_rule_id][tmpl_rxn_id],
-            tmpl_rxn=cache.get('template_reactions')[tmpl_rxn_id],
-            tmpl_rxn_id=tmpl_rxn_id,
-            compounds=cache.get('cid_strc'),
-            cmpds_to_ignore=cmpds_to_ignore,
-            logger=logger
-        )
-    else:  # One completed transformation per template reaction
-        for tpl_rxn_id, rxn_rule in cache.get('rr_reactions')[rxn_rule_id].items():
-            completed_transfos[tpl_rxn_id] = complete_transfo(
+    try:
+        completed_transfos = {}
+        if not tmpl_rxn_id is None:
+            completed_transfos[tmpl_rxn_id] = complete_transfo(
                 trans_input=trans_input,
                 direction=direction,
-                rxn_rule=rxn_rule,
-                tmpl_rxn=cache.get('template_reactions')[tpl_rxn_id],
-                tmpl_rxn_id=tpl_rxn_id,
+                rxn_rule=cache.get('rr_reactions')[rxn_rule_id][tmpl_rxn_id],
+                tmpl_rxn=cache.get('template_reactions')[tmpl_rxn_id],
+                tmpl_rxn_id=tmpl_rxn_id,
                 compounds=cache.get('cid_strc'),
                 cmpds_to_ignore=cmpds_to_ignore,
                 logger=logger
             )
+        else:  # One completed transformation per template reaction
+            for tpl_rxn_id, rxn_rule in cache.get('rr_reactions')[rxn_rule_id].items():
+                completed_transfos[tpl_rxn_id] = complete_transfo(
+                    trans_input=trans_input,
+                    direction=direction,
+                    rxn_rule=rxn_rule,
+                    tmpl_rxn=cache.get('template_reactions')[tpl_rxn_id],
+                    tmpl_rxn_id=tpl_rxn_id,
+                    compounds=cache.get('cid_strc'),
+                    cmpds_to_ignore=cmpds_to_ignore,
+                    logger=logger
+                )
+    except KeyError as e:
+        logger.error(f'   |- KeyError: {str(e)}')
+        logger.error('      + The reaction rule is not known in the cache. Are you sure you provided the right data-type, e.g. mnx3.1, mnx4.4...?')
+        return {}
 
     return completed_transfos
 
@@ -342,7 +353,7 @@ def detect_missing_compounds(
                 logger.warning(f'      + Ignoring compound {cmp_id} ({cmp_sto}) on {side} side of the transformation')
                 continue
             # Handle compounds with no structure
-            if cmp_id in cid_strc:
+            if cmp_id in cid_strc and cid_strc[cmp_id]['smiles'] not in [None, '']:
                 added_compounds[side][cmp_id] = {}
                 added_compounds[side][cmp_id]['stoichio'] = cmp_sto
                 for key, val in cid_strc[cmp_id].items():

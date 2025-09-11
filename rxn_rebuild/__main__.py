@@ -71,8 +71,14 @@ def entry_point():
     if args.log_file != '':
         log_basicConfig(filename=args.log_file, encoding='utf-8')
 
+    # cache = rrCache(
+    #     attrs=['rr_reactions', 'template_reactions', 'cid_strc'],
+    #     logger=logger
+    # )
+
     cache = rrCache(
-        attrs=['rr_reactions', 'template_reactions', 'cid_strc'],
+        data_type=args.data_type,
+        interactive=False,
         logger=logger
     )
 
