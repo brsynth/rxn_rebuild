@@ -1,0 +1,21 @@
+{
+    "MNXR94682": {
+        "full_transfo": {
+            "left": {
+                "[H][O][C](=[O])[C](=[O])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([H])[O][H]": 1.0
+            },
+            "right": {
+                "[H]OC(=O)C(=O)C([H])(O[H])C([H])(O[H])C([H])([H])C([H])=O": 1.0,
+                "[H]O[H]": 2.0
+            }
+        },
+        "added_cmpds": {
+            "left": {},
+            "right": {},
+            "left_nostruct": {},
+            "right_nostruct": {}
+        },
+        "sep_side": ">>",
+        "sep_cmpd": "."
+    }
+}

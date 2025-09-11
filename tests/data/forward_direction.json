@@ -1,0 +1,32 @@
+{
+    "MNXR96458": {
+        "full_transfo": {
+            "left": {
+                "[H]Oc1c([H])c([H])c([H])c([H])c1O[H]": 1.0,
+                "O=O": 1.0
+            },
+            "right": {
+                "[H]OC(=O)C([H])=C([H])C([H])=C([H])C(=O)O[H]": 1.0,
+                "[H+]": 2.0
+            }
+        },
+        "sep_side": ">>",
+        "sep_cmpd": ".",
+        "added_cmpds": {
+            "left": {},
+            "right": {
+                "MNXM1": {
+                    "stoichio": 2.0,
+                    "formula": "H",
+                    "smiles": "[H+]",
+                    "inchi": "InChI=1S/p+1",
+                    "inchikey": "GPRLSGONYQIRFK-UHFFFAOYSA-N",
+                    "cid": "MNXM1",
+                    "name": "H(+)"
+                }
+            },
+            "left_nostruct": {},
+            "right_nostruct": {}
+        }
+    }
+}

@@ -5,6 +5,8 @@ Created on Jul 15 2020
 """
 
 from unittest  import TestCase
+from os import path as os_path
+from json import load as json_load
 from rr_cache import rrCache
 from rxn_rebuild.rxn_rebuild import (
     rebuild_rxn,
@@ -13,12 +15,18 @@ from rxn_rebuild.rxn_rebuild import (
 from brs_utils import create_logger
 
 
+HERE = os_path.dirname(os_path.abspath(__file__))
+DATA_PATH = os_path.join(HERE, 'data')
+
 class Test(TestCase):
 
     # Set attributes
     logger = create_logger(__name__, 'INFO')
     cache = rrCache(
-        attrs=['rr_reactions', 'template_reactions', 'cid_strc']
+        # attrs=['rr_reactions', 'template_reactions', 'cid_strc']
+        data_type='mnx3.1',
+        interactive=False,
+        logger=logger
     )
 
     def test_all_cmpds_ok(self):
@@ -32,27 +40,7 @@ class Test(TestCase):
         )
         self.assertEqual(
             completed_transfos,
-            {
-                'MNXR94682': {
-                    'full_transfo': {
-                        'left': {
-                            '[H][O][C](=[O])[C](=[O])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([H])[O][H]': 1.0
-                        },
-                        'right': {
-                            '[H]OC(=O)C(=O)C([H])(O[H])C([H])(O[H])C([H])([H])C([H])=O': 1.0,
-                            '[H]O[H]': 2.0
-                        }
-                    },
-                    'added_cmpds': {
-                        'left': {},
-                        'right': {},
-                        'left_nostruct': {},
-                        'right_nostruct': {}
-                    },
-                    'sep_side': '>>',
-                    'sep_cmpd': '.'
-                }
-            }
+            json_load(open(os_path.join(DATA_PATH, 'all_cmpds_ok.json'), 'r'))
         )
 
     def test_cmpds_nostruct(self):
@@ -66,178 +54,7 @@ class Test(TestCase):
         )
         self.assertEqual(
             completed_transfos,
-            {
-                "MNXR94690": {
-                    "full_transfo": {
-                        "left": {
-                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]": 1.0,
-                            "O": 1.0
-                        },
-                        "right": {
-                            "[H+]": 2.0,
-                            "[H][N]=[C]([O][H])[C]1=[C]([H])[N]([C]2([H])[O][C]([H])([C]([H])([H])[O][P](=[O])([O][H])[O][P](=[O])([O][H])[O][C]([H])([H])[C]3([H])[O][C]([H])([n]4[c]([H])[n][c]5[c]([N]([H])[H])[n][c]([H])[n][c]54)[C]([H])([O][H])[C]3([H])[O][H])[C]([H])([O][H])[C]2([H])[O][H])[C]([H])=[C]([H])[C]1([H])[H]": 1.0,
-                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])=[O]": 1.0
-                        }
-                    },
-                    "added_cmpds": {
-                        "left": {
-                            "MNXM2": {
-                                "stoichio": 1.0,
-                                "formula": "H2O",
-                                "smiles": "O",
-                                "inchi": "InChI=1S/H2O/h1H2",
-                                "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
-                                "cid": "MNXM2",
-                                "name": "H2O"
-                            }
-                        },
-                        "right": {
-                            "MNXM1": {
-                                "stoichio": 1.0,
-                                "formula": "H",
-                                "smiles": "[H+]",
-                                "inchi": "InChI=1S/p+1",
-                                "inchikey": "GPRLSGONYQIRFK-UHFFFAOYSA-N",
-                                "cid": "MNXM1",
-                                "name": "H(+)"
-                            }
-                        },
-                        "left_nostruct": {},
-                        "right_nostruct": {}
-                    },
-                    "sep_side": ">>",
-                    "sep_cmpd": "."
-                },
-                "MNXR119958": {
-                    "full_transfo": {
-                        "left": {
-                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]": 1.0,
-                            "O": 1.0,
-                            "MNXM8975": 1.0
-                        },
-                        "right": {
-                            "[H+]": 1.0,
-                            "[H][N]=[C]([O][H])[C]1=[C]([H])[N]([C]2([H])[O][C]([H])([C]([H])([H])[O][P](=[O])([O][H])[O][P](=[O])([O][H])[O][C]([H])([H])[C]3([H])[O][C]([H])([n]4[c]([H])[n][c]5[c]([N]([H])[H])[n][c]([H])[n][c]54)[C]([H])([O][H])[C]3([H])[O][H])[C]([H])([O][H])[C]2([H])[O][H])[C]([H])=[C]([H])[C]1([H])[H]": 1.0,
-                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])=[O]": 1.0,
-                            "MNXM36": 1.0
-                        }
-                    },
-                    "added_cmpds": {
-                        "left": {
-                            "MNXM2": {
-                                "stoichio": 1.0,
-                                "formula": "H2O",
-                                "smiles": "O",
-                                "inchi": "InChI=1S/H2O/h1H2",
-                                "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
-                                "cid": "MNXM2",
-                                "name": "H2O"
-                            }
-                        },
-                        "right": {},
-                        "left_nostruct": {
-                            "MNXM8975": {
-                                "stoichio": 1.0,
-                                "cid": "MNXM8975"
-                            }
-                        },
-                        "right_nostruct": {
-                            "MNXM36": {
-                                "stoichio": 1.0,
-                                "cid": "MNXM36"
-                            }
-                        }
-                    },
-                    "sep_side": ">>",
-                    "sep_cmpd": "."
-                },
-                "MNXR125838": {
-                    "full_transfo": {
-                        "left": {
-                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]": 1.0,
-                            "O": 1.0,
-                            "MNXM35": 1.0
-                        },
-                        "right": {
-                            "[H+]": 1.0,
-                            "[H][N]=[C]([O][H])[C]1=[C]([H])[N]([C]2([H])[O][C]([H])([C]([H])([H])[O][P](=[O])([O][H])[O][P](=[O])([O][H])[O][C]([H])([H])[C]3([H])[O][C]([H])([n]4[c]([H])[n][c]5[c]([N]([H])[H])[n][c]([H])[n][c]54)[C]([H])([O][H])[C]3([H])[O][H])[C]([H])([O][H])[C]2([H])[O][H])[C]([H])=[C]([H])[C]1([H])[H]": 1.0,
-                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])=[O]": 1.0,
-                            "MNXM24": 1.0
-                        }
-                    },
-                    "added_cmpds": {
-                        "left": {
-                            "MNXM2": {
-                                "stoichio": 1.0,
-                                "formula": "H2O",
-                                "smiles": "O",
-                                "inchi": "InChI=1S/H2O/h1H2",
-                                "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
-                                "cid": "MNXM2",
-                                "name": "H2O"
-                            }
-                        },
-                        "right": {},
-                        "left_nostruct": {
-                            "MNXM35": {
-                                "stoichio": 1.0,
-                                "cid": "MNXM35"
-                            }
-                        },
-                        "right_nostruct": {
-                            "MNXM24": {
-                                "stoichio": 1.0,
-                                "cid": "MNXM24"
-                            }
-                        }
-                    },
-                    "sep_side": ">>",
-                    "sep_cmpd": "."
-                },
-                "MNXR128882": {
-                    "full_transfo": {
-                        "left": {
-                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]": 1.0,
-                            "O": 1.0,
-                            "MNXM35": 1.0
-                        },
-                        "right": {
-                            "[H+]": 1.0,
-                            "[H][N]=[C]([O][H])[C]1=[C]([H])[N]([C]2([H])[O][C]([H])([C]([H])([H])[O][P](=[O])([O][H])[O][P](=[O])([O][H])[O][C]([H])([H])[C]3([H])[O][C]([H])([n]4[c]([H])[n][c]5[c]([N]([H])[H])[n][c]([H])[n][c]54)[C]([H])([O][H])[C]3([H])[O][H])[C]([H])([O][H])[C]2([H])[O][H])[C]([H])=[C]([H])[C]1([H])[H]": 1.0,
-                            "[H][O][C]([H])([H])[C]([H])([H])[C]([H])=[O]": 1.0,
-                            "MNXM24": 1.0
-                        }
-                    },
-                    "added_cmpds": {
-                        "left": {
-                            "MNXM2": {
-                                "stoichio": 1.0,
-                                "formula": "H2O",
-                                "smiles": "O",
-                                "inchi": "InChI=1S/H2O/h1H2",
-                                "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
-                                "cid": "MNXM2",
-                                "name": "H2O"
-                            }
-                        },
-                        "right": {},
-                        "left_nostruct": {
-                            "MNXM35": {
-                                "stoichio": 1.0,
-                                "cid": "MNXM35"
-                            }
-                        },
-                        "right_nostruct": {
-                            "MNXM24": {
-                                "stoichio": 1.0,
-                                "cid": "MNXM24"
-                            }
-                        }
-                    },
-                    "sep_side": ">>",
-                    "sep_cmpd": "."
-                }
-            }
+            json_load(open(os_path.join(DATA_PATH, 'cmpds_nostruct.json'), 'r'))
         )
 
     def test_all_cmpds_ok_wocache(self):
@@ -250,72 +67,22 @@ class Test(TestCase):
         )
         self.assertEqual(
             completed_transfos,
-            {
-                "MNXR94682": {
-                    "full_transfo": {
-                        "left": {
-                            "[H][O][C](=[O])[C](=[O])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([O][H])[C]([H])([H])[O][H]": 1.0
-                        },
-                        "right": {
-                            "[H]OC(=O)C(=O)C([H])(O[H])C([H])(O[H])C([H])([H])C([H])=O": 1.0,
-                            "[H]O[H]": 2.0
-                        }
-                    },
-                    "added_cmpds": {
-                        "left": {},
-                        "right": {},
-                        "left_nostruct": {},
-                        "right_nostruct": {}
-                    },
-                    "sep_side": ">>",
-                    "sep_cmpd": "."
-                }
-            }
+            json_load(open(os_path.join(DATA_PATH, 'all_cmpds_ok_wocache.json'), 'r'))
         )
 
     def test_forward_direction(self):
         rule_id = 'RR-02-a0cc0be463ff412f-16-F'
         transfo = '[H]Oc1c([H])c([H])c([H])c([H])c1O[H].O=O>>[H]OC(=O)C([H])=C([H])C([H])=C([H])C(=O)O[H]'
         direction = 'forward'
+        completed_transfos = rebuild_rxn(
+            rxn_rule_id = rule_id,
+            transfo = transfo,
+            direction = direction,
+            logger = self.logger
+        )
         self.assertEqual(
-            rebuild_rxn(
-                rxn_rule_id = rule_id,
-                transfo = transfo,
-                direction = direction,
-                logger = self.logger
-            ),
-            {
-                "MNXR96458": {
-                    "full_transfo": {
-                        'left': {
-                            '[H]Oc1c([H])c([H])c([H])c([H])c1O[H]': 1.0,
-                            'O=O': 1.0
-                        },
-                        'right': {
-                            '[H]OC(=O)C([H])=C([H])C([H])=C([H])C(=O)O[H]': 1.0,
-                            '[H+]': 2.0
-                        },
-                    },
-                    'sep_side': '>>',
-                    'sep_cmpd': '.',
-                    "added_cmpds": {
-                        "left": {},
-                        "right": {
-                            "MNXM1": {
-                                "stoichio": 2.0,
-                                "formula": "H",
-                                "smiles": "[H+]",
-                                "inchi": "InChI=1S/p+1",
-                                "inchikey": "GPRLSGONYQIRFK-UHFFFAOYSA-N",
-                                "cid": "MNXM1",
-                                "name": "H(+)"
-                            }
-                        },
-                        "left_nostruct": {},
-                        "right_nostruct": {}
-                    }
-                }
-            }
+            completed_transfos,
+            json_load(open(os_path.join(DATA_PATH, 'forward_direction.json'), 'r'))
         )
 
     def test_complete_transfo(self):
