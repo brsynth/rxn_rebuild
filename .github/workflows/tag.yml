@@ -68,8 +68,6 @@ jobs:
           activate-environment: test
       - name: Building & Testing conda package
         run: |
-          cat cicd-toolkit/recipe/conda_build_config.yaml
-          cat cicd-toolkit/recipe/meta.yaml
           conda-build cicd-toolkit/recipe
 
   Tag:
