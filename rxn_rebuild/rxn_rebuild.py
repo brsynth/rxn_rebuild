@@ -12,7 +12,6 @@ from json import dumps
 from copy import deepcopy
 from rr_cache import rrCache
 from chemlite import Reaction
-
 from .Args import DEFAULTS
 
 
