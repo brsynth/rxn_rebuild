@@ -7,7 +7,7 @@ from brs_utils import add_logger_args
 
 
 DEFAULTS = {
-    'data_type': 'mnx3.1'
+    'cspace': 'mnx3.1'
 }
 
 
@@ -71,10 +71,11 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=None
     )
     parser.add_argument(
-        '--data-type',
-        default=DEFAULTS['data_type'],
+        '--chemical-space',
+        dest='cspace',
+        default=DEFAULTS['cspace'],
         type=str,
-        help='Type of data to use (e.g. mnx3.1, mnx4.4...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).'
+        help='Chemical space to use (e.g. mnx3.1, mnx4.4...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).'
     )
     parser.add_argument(
         '--version', '-v',

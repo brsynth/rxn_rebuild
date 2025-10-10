@@ -24,7 +24,7 @@ class Test(TestCase):
     logger = create_logger(__name__, 'INFO')
     cache = rrCache(
         # attrs=['rr_reactions', 'template_reactions', 'cid_strc']
-        data_type='mnx3.1',
+        cspace='mnx3.1',
         interactive=False,
         logger=logger
     )
