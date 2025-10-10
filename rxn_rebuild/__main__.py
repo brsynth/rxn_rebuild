@@ -77,7 +77,7 @@ def entry_point():
     # )
 
     cache = rrCache(
-        data_type=args.data_type,
+        cspace=args.cspace,
         interactive=False,
         logger=logger
     )
