@@ -22,7 +22,7 @@ def rebuild_rxn(
     tmpl_rxn_id: str = None,
     cache: 'rrCache' = None,
     cmpds_to_ignore: List[str] = [],
-    data_type: str = DEFAULTS['data_type'],
+    cspace: str = DEFAULTS['cspace'],
     logger: Logger = getLogger(__name__)
 ) -> str:
 
@@ -46,7 +46,7 @@ def rebuild_rxn(
         #     # logger=logger
         # )
         cache = rrCache(
-            data_type=data_type,
+            cspace=cspace,
             interactive=False,
             logger=logger
         )
