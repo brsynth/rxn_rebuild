@@ -17,6 +17,7 @@ from colored import (
     fg as c_fg,
     bg as c_bg
 )
+
 from typing import *
 
 
