@@ -7,7 +7,7 @@ from brs_utils import add_logger_args
 
 
 DEFAULTS = {
-    'cspace': 'mnx3.1'
+    'cspace': 'mnx3.1',
 }
 
 
@@ -55,20 +55,15 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         help='Template (original) reaction identifier'
     )
     parser.add_argument(
-        '--direction',
-        type=str,
-        default='reverse',
-        choices=[
-            'forward', 'fwd',
-            'reverse', 'rev'
-        ],
-        help='Direction of the transformation to complete (default: reverse)'
-    )
-    parser.add_argument(
         '--to-ignore',
         type=str,
         help='Name of the file containing the list of compounds to ignore (default: None)',
         default=None
+    )
+    parser.add_argument(
+        '--forward', dest='forward',
+        help='Consider reactions in the forward direction',
+        required=False, action='store_true'
     )
     parser.add_argument(
         '--chemical-space',

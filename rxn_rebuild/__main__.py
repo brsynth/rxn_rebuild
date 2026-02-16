@@ -115,9 +115,9 @@ def entry_point():
               cache = cache,
         rxn_rule_id = args.rxn_rule_id,
             transfo = args.transfo,
-          direction = args.direction,
         tmpl_rxn_id = args.tmpl_rxn_id,
     cmpds_to_ignore = cmpds_to_ignore,
+            forward = args.forward,
              logger = logger
     )
 
