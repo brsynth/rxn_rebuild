@@ -117,7 +117,6 @@ def entry_point():
             transfo = args.transfo,
         tmpl_rxn_id = args.tmpl_rxn_id,
     cmpds_to_ignore = cmpds_to_ignore,
-            forward = args.forward,
              logger = logger
     )
 

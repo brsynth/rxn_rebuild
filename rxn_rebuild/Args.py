@@ -61,11 +61,6 @@ def add_arguments(parser: ArgumentParser) -> ArgumentParser:
         default=None
     )
     parser.add_argument(
-        '--forward', dest='forward',
-        help='Consider reactions in the forward direction',
-        required=False, action='store_true'
-    )
-    parser.add_argument(
         '--chemical-space',
         dest='cspace',
         default=DEFAULTS['cspace'],

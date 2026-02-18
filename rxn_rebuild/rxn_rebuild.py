@@ -23,7 +23,6 @@ def rebuild_rxn(
     cmpds_to_ignore: List[str] = [],
     cspace: str = DEFAULTS['cspace'],
     cspace_type: str = 'rr2026',
-    forward: bool = False,
     logger: Logger = getLogger(__name__)
 ) -> str:
 
@@ -33,14 +32,9 @@ def rebuild_rxn(
     logger.debug(f'cmpds_to_ignore: {cmpds_to_ignore}')
     logger.debug(f'cspace: {cspace}')
     logger.debug(f'cspace_type: {cspace_type}')
-    logger.debug(f'forward: {forward}')
 
     ## INPUT TRANSFORMATION
     trans_input = Reaction.parse(transfo, logger)
-    # # If input transfo is provided in forward direction,
-    # # swap left and right sides
-    # if direction == 'forward' or direction == 'fwd':
-    #     trans_input['left'], trans_input['right'] = trans_input['right'], trans_input['left']
 
     ## LOAD CACHE
     if cache is None:
@@ -56,6 +50,7 @@ def rebuild_rxn(
 
     ## COMPLETE TRANSFORMATION
     try:
+        legacy = cspace_type=='legacy'
         completed_transfos = {}
         if not tmpl_rxn_id is None:
             completed_transfos[tmpl_rxn_id] = complete_transfo(
@@ -65,8 +60,7 @@ def rebuild_rxn(
                 tmpl_rxn_id=tmpl_rxn_id,
                 compounds=cache.get('cid_strc'),
                 cmpds_to_ignore=cmpds_to_ignore,
-                forward=forward,
-                legacy=cspace_type == 'legacy',
+                legacy=legacy,
                 logger=logger
             )
         else:  # One completed transformation per template reaction
@@ -78,8 +72,7 @@ def rebuild_rxn(
                     tmpl_rxn_id=tpl_rxn_id,
                     compounds=cache.get('cid_strc'),
                     cmpds_to_ignore=cmpds_to_ignore,
-                    forward=forward,
-                    legacy=cspace_type == 'legacy',
+                    legacy=legacy,
                     logger=logger
                 )
     except KeyError as e:
@@ -97,68 +90,54 @@ def complete_transfo(
     tmpl_rxn_id: str,
     compounds: Dict,
     cmpds_to_ignore: List[str] = [],
-    forward: bool = False,
     legacy: bool = False,
     logger: Logger = getLogger(__name__)
 ) -> Dict:
 
     logger.debug(f'TRANS_INPUT: {dumps(trans_input, indent=4)}')
-    # Copy before to not modify the original one when swapping left and right sides if not forward
-    _trans_input = deepcopy(trans_input)
-    if not forward:
-        # Invert trans_input
-        _trans_input['left'], _trans_input['right'] = _trans_input['right'], _trans_input['left']
-        logger.debug(f'Considering reaction in the reverse direction, temporary TRANS_INPUT: {dumps(_trans_input, indent=4)}')
     logger.debug(f'REACTION RULE: {dumps(rxn_rule, indent=4)}')
     logger.debug(f'TEMPLATE REACTION ({tmpl_rxn_id}): {dumps(tmpl_rxn, indent=4)}')
     # logger.debug(f'COMPOUNDS: {dumps(compounds, indent=4)}')
     logger.debug(f'CMPDS TO IGNORE: {cmpds_to_ignore}')
-    logger.debug(f'FORWARD: {forward}')
 
     ## CHECK 1/2
     # Check if the number of structures in the right part of SMILES of transformation to complete
     # is equal to the number of products of the template reaction used to build the reaction rule.
-    # Just in right part since rules are always mono-component
+    # Just in right part since rules are always mono-substrate
     check_compounds_number(
         'INPUT TRANSFORMATION [right]',
-        _trans_input['right'],
+        trans_input['right'],
         'REACTION RULE [right]',
         rxn_rule['right'],
         logger=logger
     )
 
     if legacy:
-        # If input transfo is provided in forward direction,
-        # swap left and right sides of reaction rule, and
-        # change 'rel_direction'
-        if forward:
-            _rxn_rule = {
-                'left': rxn_rule['right'],
-                'right': rxn_rule['left'],
-                'rel_direction': -rxn_rule['rel_direction']
-            }
-        else:  # reverse
-            _rxn_rule = deepcopy(rxn_rule)
+        logger.debug(f'Entering in legacy rules mode')
 
         ## TEMPLATE REACTION
-        if _rxn_rule['rel_direction'] == -1:
+        if rxn_rule['rel_direction'] == -1:
             _tmpl_rxn = {
-                'left': tmpl_rxn['right'],
                 'right': tmpl_rxn['left'],
+                'left': tmpl_rxn['right']
             }
         else:
-            _tmpl_rxn = deepcopy(tmpl_rxn)
+            _tmpl_rxn = {
+                'right': tmpl_rxn['right'],
+                'left': tmpl_rxn['left']
+            }
 
         ## ADD MISSING COMPOUNDS TO THE FINAL TRANSFORMATION
         # to replace by LEFT_EXCLUDEED_IDS and RIGHT_EXCLUDED_IDS from templates.tsv
         missing_compounds = detect_missing_compounds(
             _tmpl_rxn,
-            _rxn_rule,
+            rxn_rule,
             compounds,
             cmpds_to_ignore=cmpds_to_ignore,
             logger=logger
         )
     else:
+        logger.debug(f'Entering in new rules mode')
         missing_compounds = {
             'left': dict((Counter(rxn_rule['left_excluded']))),
             'right': dict((Counter(rxn_rule['right_excluded'])))
@@ -167,22 +146,10 @@ def complete_transfo(
 
     ## BUILD FINAL TRANSFORMATION
     compl_transfo = build_final_transfo(
-        trans_input=_trans_input,
+        trans_input=trans_input,
         missing_compounds=missing_compounds,
         logger=logger
     )
-    # if legacy:
-    #     compl_transfo = build_final_transfo_legacy(
-    #         trans_input=trans_input,
-    #         missing_compounds=missing_compounds,
-    #         logger=logger
-    #     )
-    # else:
-    #     compl_transfo = build_final_transfo(
-    #         trans_input=trans_input,
-    #         missing_compounds=missing_compounds,
-    #         logger=logger
-    #     )
 
     ## CHECK 2/2
     # Check if the number of compounds in both right and left sides of SMILES of the completed transformation
@@ -192,25 +159,21 @@ def complete_transfo(
         # _side = side
         _side = ('left' if side == 'right' else 'right') if rxn_rule.get('rel_direction') == -1 else side
         _tmpl_rxn_side = tmpl_rxn[_side]
-        check_compounds_number(
+        check = check_compounds_number(
             f'COMPLETED TRANSFORMATION ({rxn_rule["rule_id"]}) [{side}]',
             compl_transfo[side],
             f'TEMPLATE REACTION ({tmpl_rxn_id}) [{_side}]',
             _tmpl_rxn_side,
             logger=logger
         )
-
-    # Re-invert left/right if forward
-    if not forward:
-        compl_transfo['left'], compl_transfo['right'] = compl_transfo['right'], compl_transfo['left']
-        missing_compounds['left'], missing_compounds['right'] = missing_compounds['right'], missing_compounds['left']
-        logger.debug(f'Final COMPLETED TRANSFORMATION in forward direction: {dumps(compl_transfo, indent=4)}')
+        if not check:
+            exit()
 
     return {
         'full_transfo': compl_transfo,
         'added_cmpds': missing_compounds,
-        'sep_side': _trans_input['sep_side'],
-        'sep_cmpd': _trans_input['sep_cmpd']
+        'sep_side': trans_input['sep_side'],
+        'sep_cmpd': trans_input['sep_cmpd']
     }
 
 
@@ -220,7 +183,7 @@ def check_compounds_number(
     rxn_name_2: str,
     rxn_2_side: Dict,
     logger: Logger = getLogger(__name__)
-) -> None:
+) -> bool:
     logger.debug(f'Checking number of compounds between {rxn_name_1} and {rxn_name_2}...')
     logger.debug(f'{rxn_name_1}: {rxn_1_side}')
     logger.debug(f'{rxn_name_2}: {rxn_2_side}')
