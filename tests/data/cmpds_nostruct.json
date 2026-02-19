@@ -18,9 +18,7 @@
             },
             "right": {
                 "MNXM1": 1.0
-            },
-            "left_nostruct": {},
-            "right_nostruct": {}
+            }
         },
         "sep_side": ">>",
         "sep_cmpd": "."
@@ -41,13 +39,10 @@
         },
         "added_cmpds": {
             "left": {
-                "MNXM2": 1.0
-            },
-            "right": {},
-            "left_nostruct": {
+                "MNXM2": 1.0,
                 "MNXM8975": 1.0
             },
-            "right_nostruct": {
+            "right": {
                 "MNXM36": 1.0
             }
         },
@@ -70,13 +65,10 @@
         },
         "added_cmpds": {
             "left": {
-                "MNXM2": 1.0
-            },
-            "right": {},
-            "left_nostruct": {
+                "MNXM2": 1.0,
                 "MNXM35": 1.0
             },
-            "right_nostruct": {
+            "right": {
                 "MNXM24": 1.0
             }
         },
@@ -99,13 +91,10 @@
         },
         "added_cmpds": {
             "left": {
-                "MNXM2": 1.0
-            },
-            "right": {},
-            "left_nostruct": {
+                "MNXM2": 1.0,
                 "MNXM35": 1.0
             },
-            "right_nostruct": {
+            "right": {
                 "MNXM24": 1.0
             }
         },

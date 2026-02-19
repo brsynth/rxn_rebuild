@@ -229,12 +229,6 @@ def build_final_transfo(
             if cmpd_id not in compl_transfo[side]:
                 compl_transfo[side][cmpd_id] = 0
             compl_transfo[side][cmpd_id] += cmpd_sto
-        
-        if f'{side}_nostruct' in missing_compounds:
-            for cmpd_id, cmpd_sto in missing_compounds[f'{side}_nostruct'].items():
-                if cmpd_id not in compl_transfo[side]:
-                    compl_transfo[side][cmpd_id] = 0
-                compl_transfo[side][cmpd_id] += cmpd_sto
 
     logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
 
@@ -371,9 +365,9 @@ def detect_missing_compounds(
 
     added_compounds = {
         'left': {},
-        'right': {},
-        'left_nostruct': {},
-        'right_nostruct': {}
+        'right': {}
+        # 'left_nostruct': {},
+        # 'right_nostruct': {}
     }
 
     for side in Reaction.get_SIDES():
@@ -387,12 +381,11 @@ def detect_missing_compounds(
             if cmp_id in cmpds_to_ignore:
                 logger.warning(f'      + Ignoring compound {cmp_id} ({cmp_sto}) on {side} side of the transformation')
                 continue
-            # Handle compounds with no structure
-            if cmp_id in cid_strc and cid_strc[cmp_id]['smiles'] not in [None, '']:
-                added_compounds[side][cmp_id] = cmp_sto
-            else:
-                logger.warning(f'      Compound {cmp_id} with no structure.')
-                added_compounds[side+'_nostruct'][cmp_id] = cmp_sto
+            added_compounds[side][cmp_id] = cmp_sto
+            # # Flag compounds with no structure
+            # if cmp_id in cid_strc and cid_strc[cmp_id]['smiles'] in [None, '']:
+            #     logger.warning(f'      Compound {cmp_id} with no structure.')
+            #     added_compounds[side+'_nostruct'][cmp_id] = cmp_sto
 
     return added_compounds
 

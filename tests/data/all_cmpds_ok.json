@@ -11,9 +11,7 @@
         },
         "added_cmpds": {
             "left": {},
-            "right": {},
-            "left_nostruct": {},
-            "right_nostruct": {}
+            "right": {}
         },
         "sep_side": ">>",
         "sep_cmpd": "."
