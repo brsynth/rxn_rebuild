@@ -3,36 +3,21 @@
         "full_transfo": {
             "left": {
                 "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]": 1.0,
-                "[H]O[H]": 1.0
+                "MNXM2": 1.0
             },
             "right": {
-                "[H+]": 2.0,
+                "[H+]": 1.0,
                 "[H][N]=[C]([O][H])[C]1=[C]([H])[N]([C]2([H])[O][C]([H])([C]([H])([H])[O][P](=[O])([O][H])[O][P](=[O])([O][H])[O][C]([H])([H])[C]3([H])[O][C]([H])([n]4[c]([H])[n][c]5[c]([N]([H])[H])[n][c]([H])[n][c]54)[C]([H])([O][H])[C]3([H])[O][H])[C]([H])([O][H])[C]2([H])[O][H])[C]([H])=[C]([H])[C]1([H])[H]": 1.0,
-                "[H][O][C]([H])([H])[C]([H])([H])[C]([H])=[O]": 1.0
+                "[H][O][C]([H])([H])[C]([H])([H])[C]([H])=[O]": 1.0,
+                "MNXM1": 1.0
             }
         },
         "added_cmpds": {
             "left": {
-                "MNXM2": {
-                    "stoichio": 1.0,
-                    "formula": "H2O",
-                    "smiles": "[H]O[H]",
-                    "inchi": "InChI=1S/H2O/h1H2",
-                    "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
-                    "cid": "MNXM2",
-                    "name": "H2O"
-                }
+                "MNXM2": 1.0
             },
             "right": {
-                "MNXM1": {
-                    "stoichio": 1.0,
-                    "formula": "H",
-                    "smiles": "[H+]",
-                    "inchi": "InChI=1S/p+1",
-                    "inchikey": "GPRLSGONYQIRFK-UHFFFAOYSA-N",
-                    "cid": "MNXM1",
-                    "name": "H(+)"
-                }
+                "MNXM1": 1.0
             },
             "left_nostruct": {},
             "right_nostruct": {}
@@ -44,7 +29,7 @@
         "full_transfo": {
             "left": {
                 "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]": 1.0,
-                "[H]O[H]": 1.0,
+                "MNXM2": 1.0,
                 "MNXM8975": 1.0
             },
             "right": {
@@ -56,28 +41,14 @@
         },
         "added_cmpds": {
             "left": {
-                "MNXM2": {
-                    "stoichio": 1.0,
-                    "formula": "H2O",
-                    "smiles": "[H]O[H]",
-                    "inchi": "InChI=1S/H2O/h1H2",
-                    "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
-                    "cid": "MNXM2",
-                    "name": "H2O"
-                }
+                "MNXM2": 1.0
             },
             "right": {},
             "left_nostruct": {
-                "MNXM8975": {
-                    "stoichio": 1.0,
-                    "cid": "MNXM8975"
-                }
+                "MNXM8975": 1.0
             },
             "right_nostruct": {
-                "MNXM36": {
-                    "stoichio": 1.0,
-                    "cid": "MNXM36"
-                }
+                "MNXM36": 1.0
             }
         },
         "sep_side": ">>",
@@ -87,7 +58,7 @@
         "full_transfo": {
             "left": {
                 "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]": 1.0,
-                "[H]O[H]": 1.0,
+                "MNXM2": 1.0,
                 "MNXM35": 1.0
             },
             "right": {
@@ -99,28 +70,14 @@
         },
         "added_cmpds": {
             "left": {
-                "MNXM2": {
-                    "stoichio": 1.0,
-                    "formula": "H2O",
-                    "smiles": "[H]O[H]",
-                    "inchi": "InChI=1S/H2O/h1H2",
-                    "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
-                    "cid": "MNXM2",
-                    "name": "H2O"
-                }
+                "MNXM2": 1.0
             },
             "right": {},
             "left_nostruct": {
-                "MNXM35": {
-                    "stoichio": 1.0,
-                    "cid": "MNXM35"
-                }
+                "MNXM35": 1.0
             },
             "right_nostruct": {
-                "MNXM24": {
-                    "stoichio": 1.0,
-                    "cid": "MNXM24"
-                }
+                "MNXM24": 1.0
             }
         },
         "sep_side": ">>",
@@ -130,7 +87,7 @@
         "full_transfo": {
             "left": {
                 "[H][O][C]([H])([H])[C]([H])([H])[C]([H])([H])[O][H]": 1.0,
-                "[H]O[H]": 1.0,
+                "MNXM2": 1.0,
                 "MNXM35": 1.0
             },
             "right": {
@@ -142,28 +99,14 @@
         },
         "added_cmpds": {
             "left": {
-                "MNXM2": {
-                    "stoichio": 1.0,
-                    "formula": "H2O",
-                    "smiles": "[H]O[H]",
-                    "inchi": "InChI=1S/H2O/h1H2",
-                    "inchikey": "XLYOFNOQVPJJNP-UHFFFAOYSA-N",
-                    "cid": "MNXM2",
-                    "name": "H2O"
-                }
+                "MNXM2": 1.0
             },
             "right": {},
             "left_nostruct": {
-                "MNXM35": {
-                    "stoichio": 1.0,
-                    "cid": "MNXM35"
-                }
+                "MNXM35": 1.0
             },
             "right_nostruct": {
-                "MNXM24": {
-                    "stoichio": 1.0,
-                    "cid": "MNXM24"
-                }
+                "MNXM24": 1.0
             }
         },
         "sep_side": ">>",

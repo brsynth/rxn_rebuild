@@ -52,18 +52,8 @@ def rebuild_rxn(
     try:
         legacy = cspace_type=='legacy'
         completed_transfos = {}
-        if not tmpl_rxn_id is None:
-            completed_transfos[tmpl_rxn_id] = complete_transfo(
-                trans_input=trans_input,
-                rxn_rule=cache.get('rr_reactions')[rxn_rule_id][tmpl_rxn_id],
-                tmpl_rxn=cache.get('template_reactions')[tmpl_rxn_id],
-                tmpl_rxn_id=tmpl_rxn_id,
-                compounds=cache.get('cid_strc'),
-                cmpds_to_ignore=cmpds_to_ignore,
-                legacy=legacy,
-                logger=logger
-            )
-        else:  # One completed transformation per template reaction
+        # One completed transformation per template reaction
+        if tmpl_rxn_id is None:
             for tpl_rxn_id, rxn_rule in cache.get('rr_reactions')[rxn_rule_id].items():
                 completed_transfos[tpl_rxn_id] = complete_transfo(
                     trans_input=trans_input,
@@ -75,6 +65,17 @@ def rebuild_rxn(
                     legacy=legacy,
                     logger=logger
                 )
+        else:
+            completed_transfos[tmpl_rxn_id] = complete_transfo(
+                trans_input=trans_input,
+                rxn_rule=cache.get('rr_reactions')[rxn_rule_id][tmpl_rxn_id],
+                tmpl_rxn=cache.get('template_reactions')[tmpl_rxn_id],
+                tmpl_rxn_id=tmpl_rxn_id,
+                compounds=cache.get('cid_strc'),
+                cmpds_to_ignore=cmpds_to_ignore,
+                legacy=legacy,
+                logger=logger
+            )
     except KeyError as e:
         logger.error(f'   |- KeyError: {str(e)}')
         logger.error('      + The reaction rule is not known in the cache. Are you sure you provided the right data-type, e.g. mnx3.1, mnx4.4...?')
@@ -166,8 +167,6 @@ def complete_transfo(
             _tmpl_rxn_side,
             logger=logger
         )
-        if not check:
-            exit()
 
     return {
         'full_transfo': compl_transfo,
@@ -230,6 +229,12 @@ def build_final_transfo(
             if cmpd_id not in compl_transfo[side]:
                 compl_transfo[side][cmpd_id] = 0
             compl_transfo[side][cmpd_id] += cmpd_sto
+        
+        if f'{side}_nostruct' in missing_compounds:
+            for cmpd_id, cmpd_sto in missing_compounds[f'{side}_nostruct'].items():
+                if cmpd_id not in compl_transfo[side]:
+                    compl_transfo[side][cmpd_id] = 0
+                compl_transfo[side][cmpd_id] += cmpd_sto
 
     logger.debug('COMPLETED TRANSFORMATION:'+str(dumps(compl_transfo, indent=4)))
 
@@ -386,12 +391,8 @@ def detect_missing_compounds(
             if cmp_id in cid_strc and cid_strc[cmp_id]['smiles'] not in [None, '']:
                 added_compounds[side][cmp_id] = cmp_sto
             else:
-                logger.warning(f'      Compound {cmp_id} with no structure not added to the transformation. Please check the template reaction and the reaction rule, and update the cache if needed.')
-                # Fill only 'stoichio' information
-                # added_compounds[side+'_nostruct'][cmp_id] = cmp_sto
-                ## added_compounds[side+'_nostruct'][cmp_id] = {}
-                ## added_compounds[side+'_nostruct'][cmp_id]['stoichio'] = cmp_sto
-                ## added_compounds[side+'_nostruct'][cmp_id]['cid'] = cmp_id
+                logger.warning(f'      Compound {cmp_id} with no structure.')
+                added_compounds[side+'_nostruct'][cmp_id] = cmp_sto
 
     return added_compounds
 
