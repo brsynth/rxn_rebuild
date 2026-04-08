@@ -1,0 +1,10 @@
+name: rxn_rebuild
+channels:
+  - conda-forge
+  - nodefaults
+dependencies:
+  - pytest
+  - pytest-cov
+  - pytest-mock
+  - black
+  - ruff
