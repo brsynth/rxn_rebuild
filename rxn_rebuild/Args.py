@@ -1,7 +1,7 @@
 from argparse import ArgumentParser
 
 DEFAULTS = {
-    "cspace": "mnx3.1",
+    "cspace": "rr2026",
 }
 
 
