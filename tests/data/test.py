@@ -5,12 +5,12 @@ sep = '","'
 # transfos = {}
 RR = {}
 
-with open(filename, 'r') as f:
+with open(filename, "r") as f:
     lines = f.readlines()
     header = lines[0].split(sep)
     for line in lines[1:]:
         row = line.split(sep)
-        for rule in row[10][1:-1].split(','):
+        for rule in row[10][1:-1].split(","):
             RR[rule] = row[2]
         # transfos[row[1]] = row[2]
 
