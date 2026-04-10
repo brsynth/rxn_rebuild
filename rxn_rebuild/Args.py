@@ -1,76 +1,33 @@
 from argparse import ArgumentParser
-from rxn_rebuild._version import __version__
-from typing import (
-    Callable,
-)
-from brs_utils import add_logger_args
-
 
 DEFAULTS = {
-    'cspace': 'mnx3.1',
+    "cspace": "rr2026",
 }
-
-
-def build_args_parser(
-    prog: str,
-    description: str = '',
-    epilog: str = '',
-    m_add_args: Callable = None,
-) -> ArgumentParser:
-
-    parser = ArgumentParser(
-        prog = prog,
-        description = description,
-        epilog = epilog
-    )
-
-    # Build Parser with rptools common arguments
-    parser = add_arguments(parser)
-
-    # Add module specific arguments
-    if m_add_args is not None:
-        parser = m_add_args(parser)
-
-    return parser
 
 
 def add_arguments(parser: ArgumentParser) -> ArgumentParser:
 
-    # Add arguments related to the logger
-    parser = add_logger_args(parser)
+    parser.add_argument("rxn_rule_id", type=str, help="Reaction rule identifier")
+    parser.add_argument(
+        "transfo",
+        type=str,
+        help="Transformation to complete with flatten compounds ids (e.g. MNXM181 + MNXM4 = MNXM1 + MNXM1 + MNXM1144) or in SMILES string (e.g. [H]OC(=O)C([H])=C([H])C([H])=C([H])C(=O)O[H]>>[H]Oc1c([H])c([H])c([H])c([H])c1O[H].O=O.O=O)",
+    )
+    parser.add_argument(
+        "--tmpl_rxn_id", type=str, help="Template (original) reaction identifier"
+    )
+    parser.add_argument(
+        "--to-ignore",
+        type=str,
+        help="Name of the file containing the list of compounds to ignore (default: None)",
+        default=None,
+    )
+    parser.add_argument(
+        "--chemical-space",
+        dest="cspace",
+        default=DEFAULTS["cspace"],
+        type=str,
+        help="Chemical space to use (e.g. mnx3.1, mnx4.4...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).",
+    )
 
-    parser.add_argument(
-        'rxn_rule_id',
-        type=str,
-        help='Reaction rule identifier'
-    )
-    parser.add_argument(
-        'transfo',
-        type=str,
-        help='Transformation to complete with flatten compounds ids (e.g. MNXM181 + MNXM4 = MNXM1 + MNXM1 + MNXM1144) or in SMILES string (e.g. [H]OC(=O)C([H])=C([H])C([H])=C([H])C(=O)O[H]>>[H]Oc1c([H])c([H])c([H])c([H])c1O[H].O=O.O=O)'
-    )
-    parser.add_argument(
-        '--tmpl_rxn_id',
-        type=str,
-        help='Template (original) reaction identifier'
-    )
-    parser.add_argument(
-        '--to-ignore',
-        type=str,
-        help='Name of the file containing the list of compounds to ignore (default: None)',
-        default=None
-    )
-    parser.add_argument(
-        '--chemical-space',
-        dest='cspace',
-        default=DEFAULTS['cspace'],
-        type=str,
-        help='Chemical space to use (e.g. mnx3.1, mnx4.4...). Determines which configuration files and folders to use both the cache and the input cache (default: %(default)s).'
-    )
-    parser.add_argument(
-        '--version', '-v',
-        action='version',
-        version='%(prog)s {}'.format(__version__),
-        help='show the version number and exit'
-    )
     return parser
