@@ -3,6 +3,6 @@ channels:
   - conda-forge
 dependencies:
   - python
-  - brs_utils>=1.6.0
+  - brs_utils>=1.26.0
   - rr_cache>=3.3.2
   - chemlite
