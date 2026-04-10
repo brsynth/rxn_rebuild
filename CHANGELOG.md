@@ -1,5 +1,9 @@
 # Changelog
 
+## [3.1.7](https://github.com/brsynth/rxn_rebuild/tree/3.1.7) (2026-04-10)
+
+[Full Changelog](https://github.com/brsynth/rxn_rebuild/compare/3.1.6...3.1.7)
+
 ## [3.1.6](https://github.com/brsynth/rxn_rebuild/tree/3.1.6) (2026-02-19)
 
 [Full Changelog](https://github.com/brsynth/rxn_rebuild/compare/3.1.5...3.1.6)
